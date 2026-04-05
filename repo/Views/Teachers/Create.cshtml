@@ -1,0 +1,70 @@
+@model repo.Models.Teacher
+
+@{
+    ViewData["Title"] = "Добавление преподавателя";
+}
+
+<div class="fade-in">
+    <div class="d-flex justify-between align-center mb-3">
+        <h2><i class="fas fa-plus-circle"></i> Добавить преподавателя</h2>
+        <a href="@Url.Action("Index")" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Назад
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-user-plus"></i> Форма добавления преподавателя</h5>
+        </div>
+        <div class="card-body">
+            <form asp-action="Create" method="post">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="form-group">
+                            <label asp-for="LastName" class="form-label">
+                                <i class="fas fa-user"></i> Фамилия <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="LastName" class="form-control" placeholder="Введите фамилию" />
+                            <span asp-validation-for="LastName" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <div class="form-group">
+                            <label asp-for="FirstName" class="form-label">
+                                <i class="fas fa-user"></i> Имя <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="FirstName" class="form-control" placeholder="Введите имя" />
+                            <span asp-validation-for="FirstName" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <div class="form-group">
+                            <label asp-for="Patronymic" class="form-label">
+                                <i class="fas fa-user"></i> Отчество <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="Patronymic" class="form-control" placeholder="Введите отчество" />
+                            <span asp-validation-for="Patronymic" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group mt-3">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Сохранить
+                    </button>
+                    <a href="@Url.Action("Index")" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Отмена
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

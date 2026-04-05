@@ -1,0 +1,100 @@
+@model repo.Models.Discipline
+
+@{
+    ViewData["Title"] = "Удаление дисциплины";
+}
+
+<div class="fade-in">
+    <div class="d-flex justify-between align-center mb-3">
+        <h2><i class="fas fa-trash-alt"></i> Удаление дисциплины</h2>
+        <a href="@Url.Action("Index")" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Назад
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Подтверждение удаления</h5>
+        </div>
+        <div class="card-body">
+            @if (ViewBag.HasStudents == true)
+            {
+                <div class="alert alert-danger">
+                    <i class="fas fa-ban"></i> <strong>Невозможно удалить дисциплину!</strong><br />
+                    Дисциплина "<strong>@Model.Name</strong>" привязана к <strong>@ViewBag.StudentsCount</strong> студентам.
+                    
+                    @if (ViewBag.Students != null && ViewBag.Students.Count > 0)
+                    {
+                        <div class="mt-3">
+                            <strong>Студенты, изучающие эту дисциплину:</strong>
+                            <ul class="mt-2">
+                                @foreach (var student in ViewBag.Students)
+                                {
+                                    <li>@student.LastName @student.FirstName (@student.RecordBookNumber)</li>
+                                }
+                                @if (ViewBag.StudentsCount > 5)
+                                {
+                                    <li><em>...и еще @(ViewBag.StudentsCount - 5) студентов</em></li>
+                                }
+                            </ul>
+                        </div>
+                    }
+                    
+                    <div class="mt-3">
+                        <a href="@Url.Action("Index")" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Вернуться к списку
+                        </a>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-warning">
+                    <i class="fas fa-question-circle"></i> Вы уверены, что хотите удалить дисциплину "<strong>@Model.Name</strong>"?
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th style="width: 30%">ID:</th>
+                                <td>@Model.Id</td>
+                            </tr>
+                            <tr>
+                                <th>Название:</th>
+                                <td>@Model.Name</td>
+                            </tr>
+                            <tr>
+                                <th>Оценка:</th>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(Model.Grade))
+                                    {
+                                        <span class="badge bg-success">@Model.Grade</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">—</span>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Преподаватель:</th>
+                                <td>@(Model.Teacher?.FullName ?? "Не назначен")</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <form asp-action="Delete" method="post">
+                    <input type="hidden" asp-for="Id" />
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Удалить дисциплину? Это действие необратимо.');">
+                        <i class="fas fa-trash"></i> Да, удалить
+                    </button>
+                    <a href="@Url.Action("Index")" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Нет, отмена
+                    </a>
+                </form>
+            }
+        </div>
+    </div>
+</div>

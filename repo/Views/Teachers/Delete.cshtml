@@ -1,0 +1,99 @@
+@model repo.Models.Teacher
+
+@{
+    ViewData["Title"] = "Удаление преподавателя";
+}
+
+<div class="fade-in">
+    <div class="d-flex justify-between align-center mb-3">
+        <h2><i class="fas fa-trash-alt"></i> Удаление преподавателя</h2>
+        <a href="@Url.Action("Index")" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Назад
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Подтверждение удаления</h5>
+        </div>
+        <div class="card-body">
+            @if (ViewBag.HasDisciplines == true)
+            {
+                <div class="alert alert-danger">
+                    <i class="fas fa-ban"></i>
+                    <strong>Внимание!</strong> Нельзя удалить преподавателя, так как он ведет 
+                    <strong>@ViewBag.DisciplinesCount</strong> дисциплин(у).
+                    
+                    @if (ViewBag.Disciplines != null)
+                    {
+                        <div class="mt-2">
+                            <strong>Список дисциплин:</strong>
+                            <ul>
+                                @foreach (var discipline in ViewBag.Disciplines)
+                                {
+                                    <li>@discipline.Name</li>
+                                }
+                            </ul>
+                        </div>
+                    }
+                    
+                    <div class="mt-3">
+                        <a href="@Url.Action("Index")" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Вернуться к списку
+                        </a>
+                    </div>
+                </div>
+            }
+            else if (ViewBag.HasStudents == true)
+            {
+                <div class="alert alert-danger">
+                    <i class="fas fa-ban"></i>
+                    <strong>Внимание!</strong> Нельзя удалить преподавателя, так как у него есть студенты 
+                    (<strong>@ViewBag.StudentsCount</strong> студентов), изучающие его дисциплины.
+                    
+                    <div class="mt-3">
+                        <a href="@Url.Action("Index")" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Вернуться к списку
+                        </a>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Вы уверены, что хотите удалить преподавателя?</strong>
+                    <p class="mt-2 mb-0">Это действие невозможно отменить.</p>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0">Информация о преподавателе</h6>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th style="width: 150px;">ID:</th>
+                                <td>@Model.Id</td>
+                            </tr>
+                            <tr>
+                                <th>ФИО:</th>
+                                <td><strong>@Model.LastName @Model.FirstName @Model.Patronymic</strong></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <form asp-action="Delete" method="post">
+                    <input type="hidden" asp-for="Id" />
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Удалить
+                    </button>
+                    <a href="@Url.Action("Index")" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Отмена
+                    </a>
+                </form>
+            }
+        </div>
+    </div>
+</div>

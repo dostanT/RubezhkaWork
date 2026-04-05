@@ -1,0 +1,98 @@
+@model repo.Models.Discipline
+
+@{
+    ViewData["Title"] = "Назначение преподавателя";
+}
+
+<div class="fade-in">
+    <div class="d-flex justify-between align-center mb-3">
+        <h2><i class="fas fa-user-plus"></i> Назначить преподавателя</h2>
+        <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Назад
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-book"></i> Дисциплина</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th style="width: 40%">Название:</th>
+                            <td><strong>@Model.Name</strong></td>
+                        </tr>
+                        <tr>
+                            <th>Текущий преподаватель:</th>
+                            <td>
+                                @if (Model.Teacher != null)
+                                {
+                                    <span class="badge bg-success">@Model.Teacher.FullName</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning">Не назначен</span>
+                                }
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-chalkboard-user"></i> Выбор преподавателя</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="AssignTeacher" method="post">
+                        <input type="hidden" name="disciplineId" value="@Model.Id" />
+                        
+                        <div class="form-group mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-user-tie"></i> Преподаватель
+                            </label>
+                            <select name="teacherId" class="form-select" required>
+                                <option value="">-- Выберите преподавателя --</option>
+                                @if (ViewBag.Teachers != null)
+                                {
+                                    foreach (var teacher in ViewBag.Teachers)
+                                    {
+                                        if (Model.Teacher != null && teacher.Id == Model.Teacher.Id)
+                                        {
+                                            <option value="@teacher.Id" selected>@teacher.FullName (@teacher.Position)</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@teacher.Id">@teacher.FullName (@teacher.Position)</option>
+                                        }
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Назначить
+                            </button>
+                            <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Отмена
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (ViewBag.Teachers != null && ((System.Collections.IEnumerable)ViewBag.Teachers).Cast<object>().Count() == 0)
+    {
+        <div class="alert alert-warning mt-3">
+            <i class="fas fa-exclamation-triangle"></i> Нет добавленных преподавателей. 
+            <a href="@Url.Action("Create", "Teachers")" class="alert-link">Добавить преподавателя</a>
+        </div>
+    }
+</div>

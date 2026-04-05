@@ -1,0 +1,63 @@
+@model repo.Models.Student
+@{
+    ViewData["Title"] = "Удаление студента";
+}
+
+<div class="fade-in">
+    <div class="card">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Подтверждение удаления</h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-warning">
+                <i class="fas fa-warning"></i> Вы действительно хотите удалить следующего студента?
+            </div>
+
+            <table class="table table-bordered">
+                <tr>
+                    <th style="width: 30%;">Номер зачетной книжки:</th>
+                    <td>@Model.RecordBookNumber</td>
+                </tr>
+                <tr>
+                    <th>ФИО:</th>
+                    <td>@Model.LastName @Model.FirstName</td>
+                </tr>
+                <tr>
+                    <th>Группа:</th>
+                    <td>@(Model.Group?.Name ?? "Не назначена")</td>
+                </tr>
+                <tr>
+                    <th>Кафедра:</th>
+                    <td>@(Model.Department?.Name ?? "Не назначена")</td>
+                </tr>
+                <tr>
+                    <th>Тип обучения:</th>
+                    <td>
+                        @if (Model is repo.Models.FullTimeStudent)
+                        {
+                            <span>Очное</span>
+                        }
+                        else if (Model is repo.Models.PartTimeStudent)
+                        {
+                            <span>Заочное</span>
+                        }
+                        else if (Model is repo.Models.TargetStudent)
+                        {
+                            <span>Целевое</span>
+                        }
+                    </td>
+                </tr>
+            </table>
+
+            <form asp-action="Delete" method="post">
+                <input type="hidden" asp-for="RecordBookNumber" />
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Удалить
+                </button>
+                <a href="@Url.Action("Index", "Students")" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Отмена
+                </a>
+            </form>
+        </div>
+    </div>
+</div>

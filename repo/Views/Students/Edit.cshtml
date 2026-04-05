@@ -1,0 +1,134 @@
+@model repo.Models.Student
+@{
+    ViewData["Title"] = "Редактирование студента";
+}
+
+<div class="fade-in">
+    <div class="card">
+        <div class="card-header bg-warning">
+            <h5 class="mb-0"><i class="fas fa-edit"></i> Редактирование студента</h5>
+        </div>
+        <div class="card-body">
+            <form asp-action="Edit" method="post">
+                <input type="hidden" asp-for="RecordBookNumber" />
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label asp-for="LastName" class="form-label"></label>
+                            <input asp-for="LastName" class="form-control" />
+                            <span asp-validation-for="LastName" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label asp-for="FirstName" class="form-label"></label>
+                            <input asp-for="FirstName" class="form-control" />
+                            <span asp-validation-for="FirstName" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label asp-for="Patronymic" class="form-label"></label>
+                            <input asp-for="Patronymic" class="form-control" />
+                            <span asp-validation-for="Patronymic" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="Group.Id" class="form-label">Группа</label>
+                            <select asp-for="Group.Id" class="form-select" asp-items="@(new SelectList(ViewBag.Groups, "Id", "Name", Model.Group?.Id))">
+                                <option value="">Выберите группу...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="Department.Id" class="form-label">Кафедра</label>
+                            <select asp-for="Department.Id" class="form-select" asp-items="@(new SelectList(ViewBag.Departments, "Id", "Name", Model.Department?.Id))">
+                                <option value="">Выберите кафедру...</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group mt-4">
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-save"></i> Сохранить изменения
+                    </button>
+                    <a href="@Url.Action("Index", "Students")" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Отмена
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Управление дисциплинами -->
+    <div class="card mt-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="fas fa-book"></i> Управление дисциплинами</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Добавить дисциплину</h6>
+                    <form asp-action="AssignDiscipline" method="post">
+                        <input type="hidden" name="studentId" value="@Model.RecordBookNumber" />
+                        <div class="form-group">
+                            <select name="disciplineId" class="form-select" required>
+                                <option value="">Выберите дисциплину...</option>
+                                @foreach (var discipline in ViewBag.Disciplines)
+                                {
+                                    if (!((List<repo.Models.Discipline>)ViewBag.StudentDisciplines).Any(d => d.Id == discipline.Id))
+                                    {
+                                        <option value="@discipline.Id">@discipline.Name</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-success btn-sm mt-2">
+                            <i class="fas fa-plus"></i> Добавить
+                        </button>
+                    </form>
+                </div>
+                <div class="col-md-6">
+                    <h6>Изучаемые дисциплины</h6>
+                    @if (ViewBag.StudentDisciplines != null && ((List<repo.Models.Discipline>)ViewBag.StudentDisciplines).Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <tbody>
+                                    @foreach (var discipline in ViewBag.StudentDisciplines)
+                                    {
+                                        <tr>
+                                            <td>@discipline.Name</td>
+                                            <td>@discipline.Grade</td>
+                                            <td>@(discipline.Teacher?.FullName ?? "Не назначен")</td>
+                                            <td>
+                                                <form asp-action="RemoveDiscipline" method="post" style="display: inline;">
+                                                    <input type="hidden" name="studentId" value="@Model.RecordBookNumber" />
+                                                    <input type="hidden" name="disciplineId" value="@discipline.Id" />
+                                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Удалить дисциплину?')">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">Нет добавленных дисциплин</div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

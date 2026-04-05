@@ -1,0 +1,71 @@
+@model repo.Models.Group
+@{
+    ViewData["Title"] = $"Удаление группы: {Model?.Name}";
+    bool hasStudents = ViewBag.HasStudents ?? false;
+    int studentsCount = ViewBag.StudentsCount ?? 0;
+}
+
+<div class="fade-in">
+    <div class="d-flex justify-between align-center mb-3">
+        <h2><i class="fas fa-trash-alt"></i> Удаление группы</h2>
+        <a href="@Url.Action("Index")" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Назад
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Подтверждение удаления</h5>
+        </div>
+        <div class="card-body">
+            @if (hasStudents)
+            {
+                <div class="alert alert-danger">
+                    <i class="fas fa-ban"></i>
+                    <strong>Невозможно удалить группу!</strong>
+                    <p class="mt-2 mb-0">
+                        В группе "<strong>@Model?.Name</strong>" числится <strong>@studentsCount</strong> студентов.
+                        Перед удалением группы необходимо удалить или переместить всех студентов.
+                    </p>
+                </div>
+                
+                <div class="text-center mt-3">
+                    <a href="@Url.Action("Index", "Students")" class="btn btn-warning">
+                        <i class="fas fa-user-graduate"></i> Управление студентами
+                    </a>
+                    <a href="@Url.Action("Index")" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Отмена
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-warning">
+                    <i class="fas fa-question-circle"></i>
+                    <strong>Вы уверены, что хотите удалить группу?</strong>
+                    <p class="mt-2 mb-0">
+                        Группа: <strong>@Model?.Name</strong><br />
+                        ID: <strong>@Model?.Id</strong><br />
+                    </p>
+                </div>
+
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    Группа пуста и может быть безопасно удалена. Это действие невозможно отменить.
+                </div>
+
+                <form asp-action="Delete" method="post" class="mt-3">
+                    <input type="hidden" asp-for="Id" />
+                    <div class="form-group text-center">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Да, удалить группу
+                        </button>
+                        <a href="@Url.Action("Index")" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Отмена
+                        </a>
+                    </div>
+                </form>
+            }
+        </div>
+    </div>
+</div>
