@@ -3,49 +3,49 @@
     ViewData["Title"] = "Удаление студента";
 }
 
-<div class="fade-in">
+<div class="container mt-4">
     <div class="card">
         <div class="card-header bg-danger text-white">
-            <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Подтверждение удаления</h5>
+            <h4><i class="fas fa-exclamation-triangle"></i> Удаление студента</h4>
         </div>
         <div class="card-body">
             <div class="alert alert-warning">
-                <i class="fas fa-warning"></i> Вы действительно хотите удалить следующего студента?
+                <strong>Внимание!</strong> Вы действительно хотите удалить следующего студента?
             </div>
 
             <table class="table table-bordered">
                 <tr>
-                    <th style="width: 30%;">Номер зачетной книжки:</th>
+                    <th style="width: 30%">Номер зачетки:</th>
                     <td>@Model.RecordBookNumber</td>
                 </tr>
                 <tr>
                     <th>ФИО:</th>
-                    <td>@Model.LastName @Model.FirstName</td>
+                    <td>@Model.LastName @Model.FirstName </td>
+                </tr>
+                <tr>
+                    <th>Тип студента:</th>
+                    <td>
+                        @if (Model.StudentType == "FullTime")
+                        {
+                            <span class="badge bg-primary">Очник</span>
+                        }
+                        else if (Model.StudentType == "PartTime")
+                        {
+                            <span class="badge bg-warning">Заочник</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Целевик</span>
+                        }
+                    </td>
                 </tr>
                 <tr>
                     <th>Группа:</th>
-                    <td>@(Model.Group?.Name ?? "Не назначена")</td>
+                    <td>@(Model.Group?.Name ?? "-")</td>
                 </tr>
                 <tr>
-                    <th>Кафедра:</th>
-                    <td>@(Model.Department?.Name ?? "Не назначена")</td>
-                </tr>
-                <tr>
-                    <th>Тип обучения:</th>
-                    <td>
-                        @if (Model is repo.Models.FullTimeStudent)
-                        {
-                            <span>Очное</span>
-                        }
-                        else if (Model is repo.Models.PartTimeStudent)
-                        {
-                            <span>Заочное</span>
-                        }
-                        else if (Model is repo.Models.TargetStudent)
-                        {
-                            <span>Целевое</span>
-                        }
-                    </td>
+                    <th>Email:</th>
+                    <td>@Model.Email</td>
                 </tr>
             </table>
 
@@ -54,7 +54,7 @@
                 <button type="submit" class="btn btn-danger">
                     <i class="fas fa-trash"></i> Удалить
                 </button>
-                <a href="@Url.Action("Index", "Students")" class="btn btn-secondary">
+                <a asp-action="Index" class="btn btn-secondary">
                     <i class="fas fa-times"></i> Отмена
                 </a>
             </form>

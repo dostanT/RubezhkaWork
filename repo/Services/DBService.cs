@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using repo.Context;
 using repo.Models;
 
 namespace repo.Services
@@ -76,10 +75,10 @@ namespace repo.Services
     
     public class UniversityDbService : IUniversityDbService
     {
-        private readonly UniversityDbContext _context;
-        private readonly ILogger<UniversityDbService> _logger;
+        private readonly ApplicationDbContext _context;
+        private readonly ILogger<ApplicationDbContext> _logger;
         
-        public UniversityDbService(UniversityDbContext context, ILogger<UniversityDbService> logger)
+        public UniversityDbService(ApplicationDbContext context, ILogger<ApplicationDbContext> logger)
         {
             _context = context;
             _logger = logger;
@@ -87,6 +86,7 @@ namespace repo.Services
         
         // ==================== ОСНОВНЫЕ CRUD ДЛЯ СТУДЕНТОВ ====================
         
+        // В методах GetAllStudentsAsync, GetStudentByIdAsync и др.
         public async Task<List<Student>> GetAllStudentsAsync()
         {
             try
@@ -95,7 +95,7 @@ namespace repo.Services
                     .Include(s => s.Group)
                     .Include(s => s.Department)
                     .Include(s => s.Disciplines)
-                    .ThenInclude(d => d.Teacher)
+                        .ThenInclude(d => d.Teacher)
                     .ToListAsync();
             }
             catch (Exception ex)
@@ -293,7 +293,11 @@ namespace repo.Services
         {
             try
             {
-                var student = await GetStudentByIdAsync(studentId);
+                // Загружаем студента с дисциплинами
+                var student = await _context.Students
+                    .Include(s => s.Disciplines)
+                    .FirstOrDefaultAsync(s => s.RecordBookNumber == studentId);
+                    
                 var discipline = await _context.Disciplines.FindAsync(disciplineId);
                 
                 if (student == null || discipline == null)
@@ -312,19 +316,24 @@ namespace repo.Services
                 throw;
             }
         }
-        
+
         public async Task RemoveDisciplineAsync(string studentId, int disciplineId)
         {
             try
             {
-                var student = await GetStudentByIdAsync(studentId);
-                var discipline = student?.Disciplines.FirstOrDefault(d => d.Id == disciplineId);
-                
-                if (student != null && discipline != null)
+                var student = await _context.Students
+                    .Include(s => s.Disciplines)
+                    .FirstOrDefaultAsync(s => s.RecordBookNumber == studentId);
+                    
+                if (student != null)
                 {
-                    student.Disciplines.Remove(discipline);
-                    await _context.SaveChangesAsync();
-                    _logger.LogInformation("Дисциплина {DisciplineId} удалена у студента {StudentId}", disciplineId, studentId);
+                    var discipline = student.Disciplines.FirstOrDefault(d => d.Id == disciplineId);
+                    if (discipline != null)
+                    {
+                        student.Disciplines.Remove(discipline);
+                        await _context.SaveChangesAsync();
+                        _logger.LogInformation("Дисциплина {DisciplineId} удалена у студента {StudentId}", disciplineId, studentId);
+                    }
                 }
             }
             catch (Exception ex)
@@ -336,7 +345,11 @@ namespace repo.Services
         
         public async Task<List<Discipline>> GetStudentDisciplinesAsync(string studentId)
         {
-            var student = await GetStudentByIdAsync(studentId);
+            var student = await _context.Students
+                .Include(s => s.Disciplines)
+                .ThenInclude(d => d.Teacher)
+                .FirstOrDefaultAsync(s => s.RecordBookNumber == studentId);
+                
             return student?.Disciplines.ToList() ?? new List<Discipline>();
         }
         
@@ -361,11 +374,13 @@ namespace repo.Services
         {
             return await _context.Students
                 .OfType<FullTimeStudent>()
-                .OrderByDescending(s => s.AverageScore)
+                .OrderByDescending(s => ((FullTimeStudent)s).AverageScore)
                 .Take(count)
                 .Include(s => s.Group)
                 .Include(s => s.Department)
-                .Cast<Student>()
+                .Include(s => s.Disciplines)
+                .ThenInclude(d => d.Teacher)
+                .Select(s => (Student)s)  // Явное приведение
                 .ToListAsync();
         }
         
@@ -522,6 +537,47 @@ namespace repo.Services
         {
             _context.Entry(discipline).State = EntityState.Modified;
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<Student>> GetStudentsByTypeAsync(string studentType)
+        {
+            try
+            {
+                return await _context.Students
+                    .Where(s => s.StudentType == studentType)
+                    .Include(s => s.Group)
+                    .Include(s => s.Department)
+                    .Include(s => s.Disciplines)
+                    .ThenInclude(d => d.Teacher)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Ошибка при поиске студентов по типу {StudentType}", studentType);
+                throw;
+            }
+        }
+
+        public async Task<List<GroupWithCountDto>> GetGroupsWithStudentCountAsync()
+        {
+            return await _context.Groups
+                .Select(g => new GroupWithCountDto
+                {
+                    Id = g.Id,
+                    Name = g.Name,
+                    YearOfStudy = g.YearOfStudy,
+                    StudentCount = g.Students.Count
+                })
+                .ToListAsync();
+        }
+
+        // DTO класс
+        public class GroupWithCountDto
+        {
+            public int Id { get; set; }
+            public string? Name { get; set; } = null;
+            public int YearOfStudy { get; set; }
+            public int StudentCount { get; set; }
         }
         
         public async Task DeleteDisciplineAsync(int id)

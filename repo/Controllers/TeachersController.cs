@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using repo.Models;
 using repo.Services;
 
@@ -24,26 +24,14 @@ namespace repo.Controllers
         }
 
         // GET: Teachers/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int id)
         {
-            if (id == null)
-            {
+            if (id == 0)
                 return NotFound();
-            }
 
-            var teacher = await _service.GetTeacherByIdAsync(id.Value);
+            var teacher = await _service.GetTeacherByIdAsync(id);
             if (teacher == null)
-            {
                 return NotFound();
-            }
-
-            var disciplines = await _service.GetAllDisciplinesWithTeachersAsync();
-            var teacherDisciplines = disciplines.Where(d => d.Teacher.Id == id).ToList();
-            ViewBag.Disciplines = teacherDisciplines;
-            
-            var students = await _service.GetStudentsByTeacherAsync(teacher.LastName);
-            ViewBag.Students = students;
-            ViewBag.StudentsCount = students.Count;
 
             return View(teacher);
         }
@@ -57,91 +45,72 @@ namespace repo.Controllers
         // POST: Teachers/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,FirstName,LastName,AcademicDegree,Position,Phone,Email")] Teacher teacher)
+        public async Task<IActionResult> Create(Teacher teacher)
         {
             if (ModelState.IsValid)
             {
-                await _service.CreateTeacherAsync(teacher);
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    await _service.CreateTeacherAsync(teacher);
+                    TempData["Success"] = $"Преподаватель {teacher.LastName} {teacher.FirstName} успешно создан";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Ошибка при создании преподавателя");
+                    ModelState.AddModelError("", "Ошибка при создании преподавателя: " + ex.Message);
+                }
             }
             return View(teacher);
         }
 
         // GET: Teachers/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id == null)
-            {
+            if (id == 0)
                 return NotFound();
-            }
 
-            var teacher = await _service.GetTeacherByIdAsync(id.Value);
+            var teacher = await _service.GetTeacherByIdAsync(id);
             if (teacher == null)
-            {
                 return NotFound();
-            }
+
             return View(teacher);
         }
 
         // POST: Teachers/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,FirstName,LastName,AcademicDegree,Position,Phone,Email")] Teacher teacher)
+        public async Task<IActionResult> Edit(int id, Teacher teacher)
         {
             if (id != teacher.Id)
-            {
                 return NotFound();
-            }
 
             if (ModelState.IsValid)
             {
                 try
                 {
                     await _service.UpdateTeacherAsync(teacher);
+                    TempData["Success"] = "Данные преподавателя обновлены";
+                    return RedirectToAction(nameof(Index));
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (Exception ex)
                 {
-                    if (!await TeacherExists(teacher.Id))
-                    {
-                        return NotFound();
-                    }
-                    throw;
+                    _logger.LogError(ex, "Ошибка при обновлении преподавателя");
+                    ModelState.AddModelError("", "Ошибка при обновлении преподавателя");
                 }
-                return RedirectToAction(nameof(Index));
             }
             return View(teacher);
         }
 
         // GET: Teachers/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public async Task<IActionResult> Delete(int id)
         {
-            if (id == null)
-            {
+            if (id == 0)
                 return NotFound();
-            }
 
-            var teacher = await _service.GetTeacherByIdAsync(id.Value);
+            var teacher = await _service.GetTeacherByIdAsync(id);
             if (teacher == null)
-            {
                 return NotFound();
-            }
-
-            var disciplines = await _service.GetAllDisciplinesWithTeachersAsync();
-            var teacherDisciplines = disciplines.Where(d => d.Teacher.Id == id).ToList();
-            
-            if (teacherDisciplines.Any())
-            {
-                ViewBag.HasDisciplines = true;
-                ViewBag.DisciplinesCount = teacherDisciplines.Count;
-                ViewBag.Disciplines = teacherDisciplines;
-            }
-
-            var students = await _service.GetStudentsByTeacherAsync(teacher.LastName);
-            if (students.Any())
-            {
-                ViewBag.HasStudents = true;
-                ViewBag.StudentsCount = students.Count;
-            }
 
             return View(teacher);
         }
@@ -151,26 +120,18 @@ namespace repo.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var teacher = await _service.GetTeacherByIdAsync(id);
-            if (teacher != null)
+            try
             {
-                var disciplines = await _service.GetAllDisciplinesWithTeachersAsync();
-                var teacherDisciplines = disciplines.Where(d => d.Teacher.Id == id).ToList();
-                
-                if (teacherDisciplines.Any())
-                {
-                    TempData["Error"] = $"Нельзя удалить преподавателя '{teacher.LastName}', так как он ведет {teacherDisciplines.Count} дисциплин(у)";
-                    return RedirectToAction(nameof(Delete), new { id });
-                }
+                await _service.DeleteTeacherAsync(id);
+                TempData["Success"] = "Преподаватель успешно удален";
+                return RedirectToAction(nameof(Index));
             }
-            
-            await _service.DeleteTeacherAsync(id);
-            return RedirectToAction(nameof(Index));
-        }
-
-        private async Task<bool> TeacherExists(int id)
-        {
-            return await _service.ExistsAsync<Teacher>(t => t.Id == id);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Ошибка при удалении преподавателя");
+                TempData["Error"] = "Ошибка при удалении преподавателя: " + ex.Message;
+                return RedirectToAction(nameof(Delete), new { id });
+            }
         }
     }
 }

@@ -212,3 +212,4 @@
 /Users/dostanturlybek/Work/ASP.NET/RubezhkaWork/repo/obj/Debug/net10.0/repo.genruntimeconfig.cache
 /Users/dostanturlybek/Work/ASP.NET/RubezhkaWork/repo/obj/Debug/net10.0/ref/repo.dll
 /Users/dostanturlybek/Work/ASP.NET/RubezhkaWork/repo/obj/Debug/net10.0/compressed/52q1doazyo-{0}-epqart45hj-epqart45hj.gz
+/Users/dostanturlybek/Work/ASP.NET/RubezhkaWork/repo/obj/Debug/net10.0/repo.sourcelink.json

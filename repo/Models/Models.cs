@@ -1,46 +1,5 @@
-// using System.Text.RegularExpressions;
-
-// namespace repo.Models
-// {
-//     public class StudentModel
-//     {
-//         public int id { get; set; }
-//         public required string secondName { get; set; }
-//         public required string name { get; set; }
-//         public int groupId { get; set; }
-//         public int cafedraId { get; set; }
-//         public required List<int> disciplineIds { get; set; }
-//         public int gpa { get; set; }
-//         public int teacherId { get; set; }
-//     }
-//     public class GroupModel
-//     {
-//         public int id { get; set; }
-//         public required List<int> studentsIds { get; set; }
-
-//     }
-
-//     public class DisciplineModel
-//     {
-//         public int id { get; set; }
-//         public int teacherId { get; set; }
-//         public required List<DisciplineRecordModel> scores { get; set; }
-//     }
-
-//     public class DisciplineRecordModel
-//     {
-//         public int id { get; set; }
-//         public int studentID { get; set; }
-//         public int score { get; set; }
-//     }
-// }
-
-
-// //(номер зачетной книжки, фамилия, имя, группа, кафедра, дисциплина, оценка, фамилия преподавателя) 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace repo.Models
 {
@@ -48,108 +7,226 @@ namespace repo.Models
     
     public class Group
     {
+        [Key]
         public int Id { get; set; }
+        
+        [Required]
+        [StringLength(50)]
         public string Name { get; set; } = null!;
+        
+        [Range(1, 6)]
+        public int YearOfStudy { get; set; }
+        
         public List<Student> Students { get; set; } = new();
         
-        public Group(int id, string name)
+        public Group() { }
+        
+        public Group(int id, string name, int yearOfStudy)
         {
             Id = id;
             Name = name;
+            YearOfStudy = yearOfStudy;
         }
     }
     
     public class Department
     {
+        [Key]
         public int Id { get; set; }
+        
+        [Required]
+        [StringLength(100)]
         public string Name { get; set; } = null!;
+        
+        [StringLength(100)]
+        public string HeadOfDepartment { get; set; } = null!;
+        
+        [Phone]
+        [StringLength(20)]
+        public string Phone { get; set; } = null!;
+        
+        [EmailAddress]
+        [StringLength(100)]
+        public string Email { get; set; } = null!;
+        
         public List<Student> Students { get; set; } = new();
         
-        public Department(int id, string name)
+        public Department() { }
+        
+        public Department(int id, string name, string headOfDepartment, string phone, string email)
         {
             Id = id;
             Name = name;
+            HeadOfDepartment = headOfDepartment;
+            Phone = phone;
+            Email = email;
         }
     }
     
     public class Teacher
     {
+        [Key]
         public int Id { get; set; }
-        public string LastName { get; set; } = null!;
+        
+        [Required]
+        [StringLength(50)]
         public string FirstName { get; set; } = null!;
-        public string Patronymic { get; set; } = null!;
+        
+        [Required]
+        [StringLength(50)]
+        public string LastName { get; set; } = null!;
+
+        [StringLength(50)]
+        public string? Patronymic { get; set; } = null!; 
+        
+        [StringLength(100)]
+        public string AcademicDegree { get; set; } = null!;
+        
+        [StringLength(50)]
+        public string Position { get; set; } = null!;
+        
+        [Phone]
+        [StringLength(20)]
+        public string Phone { get; set; } = null!;
+        
+        [EmailAddress]
+        [StringLength(100)]
+        public string Email { get; set; } = null!;
+        
         public List<Discipline> Disciplines { get; set; } = new();
         
-        public Teacher(int id, string lastName, string firstName, string patronymic)
+        public Teacher() { }
+        
+        public Teacher(int id, string firstName, string lastName, string academicDegree, string position, string phone, string email)
         {
             Id = id;
-            LastName = lastName;
             FirstName = firstName;
-            Patronymic = patronymic;
+            LastName = lastName;
+            AcademicDegree = academicDegree;
+            Position = position;
+            Phone = phone;
+            Email = email;
         }
         
-        public string FullName => $"{LastName} {FirstName} {Patronymic}";
+        public string FullName => $"{LastName} {FirstName}";
     }
     
     public class Discipline
     {
+        [Key]
         public int Id { get; set; }
+        
+        [Required]
+        [StringLength(100)]
         public string Name { get; set; } = null!;
+        
+        [StringLength(500)]
+        public string Description { get; set; } = null!;
+        
+        [Range(1, 12)]
+        public int Credits { get; set; }
+        
+        public int? TeacherId { get; set; }
+        
+        [ForeignKey("TeacherId")]
         public Teacher? Teacher { get; set; }
+        
         public string Grade { get; set; } = null!;
-
-        // Пустой конструктор для EF
+        
         public Discipline() { }
-
-        // Дополнительный конструктор для удобства создания в коде
-        public Discipline(int id, string name, string grade = "")
+        
+        public Discipline(int id, string name, string description, int credits, int? teacherId = null)
         {
             Id = id;
             Name = name;
-            Grade = grade;
+            Description = description;
+            Credits = credits;
+            TeacherId = teacherId;
         }
     }
     
     // ==================== АБСТРАКТНЫЙ СТУДЕНТ ====================
     
-    
-
-public abstract class Student
-{
-    [Key] // <- Это делает EF aware, что это PK
-    public string RecordBookNumber { get; set; } = null!;
-
-    public string LastName { get; set; } = null!;
-    public string FirstName { get; set; } = null!;
-    public string Patronymic { get; set; } = null!;
-
-    public Group? Group { get; set; }
-    public Department? Department { get; set; }
-    public List<Discipline> Disciplines { get; set; } = new();
-
-    public Student(){}
-    
-    protected Student(string recordBookNumber, string lastName, string firstName, string patronymic)
+    public abstract class Student
     {
-        RecordBookNumber = recordBookNumber;
-        LastName = lastName;
-        FirstName = firstName;
-        Patronymic = patronymic;
-    }
+        [Key]
+        [StringLength(20)]
+        public string RecordBookNumber { get; set; } = null!;
+        
+        [Required]
+        [StringLength(50)]
+        public string FirstName { get; set; } = null!;
+        
+        [Required]
+        [StringLength(50)]
+        public string LastName { get; set; } = null!;
 
-    public abstract void PrintInfo();
-
-        public void PrintFullInfo()
+        [StringLength(50)]
+        public string? Patronymic { get; set; }  
+        
+        [DataType(DataType.Date)]
+        public DateTime DateOfBirth { get; set; }
+        
+        [EmailAddress]
+        [StringLength(100)]
+        public string Email { get; set; } = null!;
+        
+        [Phone]
+        [StringLength(20)]
+        public string Phone { get; set; } = null!;
+        
+        [StringLength(200)]
+        public string Address { get; set; } = null!;
+        
+        public int? GroupId { get; set; }
+        
+        [ForeignKey("GroupId")]
+        public Group? Group { get; set; }
+        
+        public int? DepartmentId { get; set; }
+        
+        [ForeignKey("DepartmentId")]
+        public Department? Department { get; set; }
+        
+        [Required]
+        [StringLength(20)]
+        public string StudentType { get; set; } = null!;
+        
+        public List<Discipline> Disciplines { get; set; } = new();
+        
+        protected Student() { }
+        
+        protected Student(string recordBookNumber, string firstName, string lastName, DateTime dateOfBirth, 
+                         string email, string phone, string address, string studentType)
         {
-            Console.WriteLine($"Студент: {LastName} {FirstName} {Patronymic}");
+            RecordBookNumber = recordBookNumber;
+            FirstName = firstName;
+            LastName = lastName;
+            DateOfBirth = dateOfBirth;
+            Email = email;
+            Phone = phone;
+            Address = address;
+            StudentType = studentType;
+        }
+        
+        public abstract void PrintInfo();
+        
+        public virtual void PrintFullInfo()
+        {
+            Console.WriteLine($"Студент: {LastName} {FirstName}");
             Console.WriteLine($"№ зачетки: {RecordBookNumber}");
+            Console.WriteLine($"Дата рождения: {DateOfBirth:dd.MM.yyyy}");
+            Console.WriteLine($"Email: {Email}");
+            Console.WriteLine($"Телефон: {Phone}");
+            Console.WriteLine($"Адрес: {Address}");
             Console.WriteLine($"Группа: {Group?.Name ?? "Не указана"}");
             Console.WriteLine($"Кафедра: {Department?.Name ?? "Не указана"}");
+            Console.WriteLine($"Тип студента: {StudentType}");
             Console.WriteLine("Дисциплины:");
             foreach (var discipline in Disciplines)
             {
                 string teacherName = discipline.Teacher != null ? discipline.Teacher.FullName : "Не назначен";
-                Console.WriteLine($"  - {discipline.Name} (Оценка: {discipline.Grade}, Преподаватель: {teacherName})");
+                Console.WriteLine($"  - {discipline.Name} (Кредиты: {discipline.Credits}, Преподаватель: {teacherName})");
             }
         }
     }
@@ -158,17 +235,33 @@ public abstract class Student
     
     public class FullTimeStudent : Student
     {
+        [Range(0, 100)]
         public int EgeScore { get; set; }
+        
+        [Range(0, 5)]
         public double AverageScore { get; set; }
-
-        public FullTimeStudent(string recordBookNumber, string lastName, string firstName, string patronymic)
-            : base(recordBookNumber, lastName, firstName, patronymic)
+        
+        public FullTimeStudent() : base() { }
+        
+        public FullTimeStudent(string recordBookNumber, string firstName, string lastName, DateTime dateOfBirth,
+                              string email, string phone, string address, int egeScore, double averageScore)
+            : base(recordBookNumber, firstName, lastName, dateOfBirth, email, phone, address, "FullTime")
         {
+            EgeScore = egeScore;
+            AverageScore = averageScore;
         }
-
+        
         public override void PrintInfo()
         {
-            Console.WriteLine($"[ОЧНИК] {LastName} {FirstName} {Patronymic}, Группа: {Group?.Name ?? "Нет группы"}, ЕГЭ: {EgeScore}, Средний балл: {AverageScore:F2}");
+            Console.WriteLine($"[ОЧНИК] {LastName} {FirstName}, Группа: {Group?.Name ?? "Нет группы"}, " +
+                            $"ЕГЭ: {EgeScore}, Средний балл: {AverageScore:F2}");
+        }
+        
+        public override void PrintFullInfo()
+        {
+            base.PrintFullInfo();
+            Console.WriteLine($"ЕГЭ: {EgeScore}");
+            Console.WriteLine($"Средний балл: {AverageScore:F2}");
         }
     }
     
@@ -176,18 +269,38 @@ public abstract class Student
     
     public class PartTimeStudent : Student
     {
+        [StringLength(100)]
         public string WorkPlace { get; set; } = null!;
+        
+        [StringLength(50)]
         public string Position { get; set; } = null!;
+        
+        [Column(TypeName = "decimal(18,2)")]
         public decimal TuitionFee { get; set; }
-
-        public PartTimeStudent(string recordBookNumber, string lastName, string firstName, string patronymic)
-            : base(recordBookNumber, lastName, firstName, patronymic)
+        
+        public PartTimeStudent() : base() { }
+        
+        public PartTimeStudent(string recordBookNumber, string firstName, string lastName, DateTime dateOfBirth,
+                              string email, string phone, string address, string workPlace, string position, decimal tuitionFee)
+            : base(recordBookNumber, firstName, lastName, dateOfBirth, email, phone, address, "PartTime")
         {
+            WorkPlace = workPlace;
+            Position = position;
+            TuitionFee = tuitionFee;
         }
-
+        
         public override void PrintInfo()
         {
-            Console.WriteLine($"[ЗАОЧНИК] {LastName} {FirstName} {Patronymic}, Группа: {Group?.Name ?? "Нет группы"}, Место работы: {WorkPlace}, Должность: {Position}, Сумма обучения: {TuitionFee:C}");
+            Console.WriteLine($"[ЗАОЧНИК] {LastName} {FirstName}, Группа: {Group?.Name ?? "Нет группы"}, " +
+                            $"Место работы: {WorkPlace}, Должность: {Position}");
+        }
+        
+        public override void PrintFullInfo()
+        {
+            base.PrintFullInfo();
+            Console.WriteLine($"Место работы: {WorkPlace}");
+            Console.WriteLine($"Должность: {Position}");
+            Console.WriteLine($"Стоимость обучения: {TuitionFee:C}");
         }
     }
     
@@ -195,100 +308,33 @@ public abstract class Student
     
     public class TargetStudent : Student
     {
+        [StringLength(100)]
         public string TargetCompany { get; set; } = null!;
+        
+        [Column(TypeName = "decimal(18,2)")]
         public decimal TuitionFee { get; set; }
-
-        public TargetStudent(string recordBookNumber, string lastName, string firstName, string patronymic)
-            : base(recordBookNumber, lastName, firstName, patronymic)
+        
+        public TargetStudent() : base() { }
+        
+        public TargetStudent(string recordBookNumber, string firstName, string lastName, DateTime dateOfBirth,
+                            string email, string phone, string address, string targetCompany, decimal tuitionFee)
+            : base(recordBookNumber, firstName, lastName, dateOfBirth, email, phone, address, "Target")
         {
+            TargetCompany = targetCompany;
+            TuitionFee = tuitionFee;
         }
-
+        
         public override void PrintInfo()
         {
-            Console.WriteLine($"[ЦЕЛЕВИК] {LastName} {FirstName} {Patronymic}, Группа: {Group?.Name ?? "Нет группы"}, Целевое предприятие: {TargetCompany}, Сумма обучения: {TuitionFee:C}");
-        }
-    }
-    
-    // ==================== УПРАВЛЕНИЕ СТУДЕНТАМИ ====================
-    
-    public class StudentList
-    {
-        private readonly List<Student> students = new();
-
-        public void AddStudent(Student student)
-        {
-            students.Add(student);
+            Console.WriteLine($"[ЦЕЛЕВИК] {LastName} {FirstName}, Группа: {Group?.Name ?? "Нет группы"}, " +
+                            $"Целевое предприятие: {TargetCompany}");
         }
         
-        public void RemoveStudent(string recordBookNumber)
+        public override void PrintFullInfo()
         {
-            var student = students.FirstOrDefault(s => s.RecordBookNumber == recordBookNumber);
-            if (student != null)
-            {
-                students.Remove(student);
-                Console.WriteLine($"Студент {student.LastName} {student.FirstName} удален");
-            }
-            else
-            {
-                Console.WriteLine($"Студент с номером зачетки {recordBookNumber} не найден");
-            }
-        }
-        
-        public Student? FindStudent(string recordBookNumber)
-        {
-            return students.FirstOrDefault(s => s.RecordBookNumber == recordBookNumber);
-        }
-        
-        public List<Student> GetStudentsByGroup(string groupName)
-        {
-            return students.Where(s => s.Group != null && s.Group.Name == groupName).ToList();
-        }
-        
-        public List<Student> GetStudentsByDepartment(string departmentName)
-        {
-            return students.Where(s => s.Department != null && s.Department.Name == departmentName).ToList();
-        }
-        
-        public List<Student> GetStudentsByDiscipline(string disciplineName)
-        {
-            return students.Where(s => s.Disciplines.Any(d => d.Name == disciplineName)).ToList();
-        }
-        
-        public List<Student> GetStudentsByTeacher(string teacherLastName)
-        {
-            return students.Where(s => s.Disciplines.Any(d => d.Teacher != null && d.Teacher.LastName == teacherLastName)).ToList();
-        }
-        
-        public void PrintAllStudents()
-        {
-            if (students.Count == 0)
-            {
-                Console.WriteLine("Список студентов пуст");
-                return;
-            }
-            
-            Console.WriteLine($"\n=== ВСЕГО СТУДЕНТОВ: {students.Count} ===\n");
-            foreach (var student in students)
-            {
-                student.PrintInfo();
-            }
-        }
-        
-        public void PrintAllStudentsFullInfo()
-        {
-            if (students.Count == 0)
-            {
-                Console.WriteLine("Список студентов пуст");
-                return;
-            }
-            
-            Console.WriteLine($"\n=== ПОЛНАЯ ИНФОРМАЦИЯ О СТУДЕНТАХ ({students.Count}) ===\n");
-            foreach (var student in students)
-            {
-                student.PrintFullInfo();
-                Console.WriteLine();
-            }
+            base.PrintFullInfo();
+            Console.WriteLine($"Целевое предприятие: {TargetCompany}");
+            Console.WriteLine($"Стоимость обучения: {TuitionFee:C}");
         }
     }
 }
-

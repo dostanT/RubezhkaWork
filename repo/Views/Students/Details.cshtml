@@ -3,25 +3,17 @@
     ViewData["Title"] = "Детали студента";
 }
 
-<div class="fade-in">
+<div class="container mt-4">
     <div class="card">
-        <div class="card-header bg-info text-white d-flex justify-between align-center">
-            <h5 class="mb-0"><i class="fas fa-user-graduate"></i> Информация о студенте</h5>
-            <div>
-                <a href="@Url.Action("Edit", "Students", new { id = Model.RecordBookNumber })" class="btn btn-warning btn-sm">
-                    <i class="fas fa-edit"></i> Редактировать
-                </a>
-                <a href="@Url.Action("Index", "Students")" class="btn btn-secondary btn-sm">
-                    <i class="fas fa-arrow-left"></i> Назад
-                </a>
-            </div>
+        <div class="card-header bg-info text-white">
+            <h4><i class="fas fa-user"></i> Детали студента</h4>
         </div>
         <div class="card-body">
             <div class="row">
                 <div class="col-md-6">
                     <table class="table table-bordered">
                         <tr>
-                            <th style="width: 40%;">Номер зачетной книжки:</th>
+                            <th style="width: 40%">Номер зачетки:</th>
                             <td>@Model.RecordBookNumber</td>
                         </tr>
                         <tr>
@@ -33,107 +25,106 @@
                             <td>@Model.FirstName</td>
                         </tr>
                         <tr>
-                            <th>Отчество:</th>
-                            <td>@Model.Patronymic</td>
+                            <th>Дата рождения:</th>
+                            <td>@Model.DateOfBirth.ToString("dd.MM.yyyy")</td>
                         </tr>
                         <tr>
-                            <th>Группа:</th>
-                            <td>@(Model.Group?.Name ?? "Не назначена")</td>
-                        </tr>
-                        <tr>
-                            <th>Кафедра:</th>
-                            <td>@(Model.Department?.Name ?? "Не назначена")</td>
-                        </tr>
-                        <tr>
-                            <th>Тип обучения:</th>
+                            <th>Тип студента:</th>
                             <td>
-                                @if (Model is repo.Models.FullTimeStudent)
+                                @if (Model.StudentType == "FullTime")
                                 {
-                                    <span class="badge bg-primary">Очное</span>
+                                    <span class="badge bg-primary">Очник</span>
                                 }
-                                else if (Model is repo.Models.PartTimeStudent)
+                                else if (Model.StudentType == "PartTime")
                                 {
-                                    <span class="badge bg-info">Заочное</span>
+                                    <span class="badge bg-warning">Заочник</span>
                                 }
-                                else if (Model is repo.Models.TargetStudent)
+                                else
                                 {
-                                    <span class="badge bg-success">Целевое</span>
+                                    <span class="badge bg-danger">Целевик</span>
                                 }
                             </td>
                         </tr>
-
-                        @* Поля для конкретного типа студента *@
-                        @if (Model is repo.Models.FullTimeStudent fullTime)
-                        {
-                            <tr>
-                                <th>Средний балл:</th>
-                                <td>@fullTime.AverageScore.ToString("F2")</td>
-                            </tr>
-                            <tr>
-                                <th>ЕГЭ:</th>
-                                <td>@fullTime.EgeScore</td>
-                            </tr>
-                        }
-                        @if (Model is repo.Models.PartTimeStudent partTime)
-                        {
-                            <tr>
-                                <th>Место работы:</th>
-                                <td>@partTime.WorkPlace</td>
-                            </tr>
-                            <tr>
-                                <th>Должность:</th>
-                                <td>@partTime.Position</td>
-                            </tr>
-                            <tr>
-                                <th>Сумма обучения:</th>
-                                <td>@partTime.TuitionFee.ToString("C")</td>
-                            </tr>
-                        }
-                        @if (Model is repo.Models.TargetStudent target)
-                        {
-                            <tr>
-                                <th>Компания:</th>
-                                <td>@target.TargetCompany</td>
-                            </tr>
-                            <tr>
-                                <th>Сумма обучения:</th>
-                                <td>@target.TuitionFee.ToString("C")</td>
-                            </tr>
-                        }
                     </table>
                 </div>
-
                 <div class="col-md-6">
-                    <h5>Дисциплины</h5>
-                    @if (Model.Disciplines != null && Model.Disciplines.Any())
-                    {
-                        <table class="table table-striped table-bordered mt-2">
-                            <thead>
-                                <tr>
-                                    <th>Название</th>
-                                    <th>Оценка</th>
-                                    <th>Преподаватель</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var d in Model.Disciplines)
-                                {
-                                    <tr>
-                                        <td>@d.Name</td>
-                                        <td>@(d.Grade ?? "—")</td>
-                                        <td>@(d.Teacher?.FullName ?? "Не назначен")</td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    }
-                    else
-                    {
-                        <div class="alert alert-info mt-3">
-                            <i class="fas fa-info-circle"></i> Студент не изучает ни одной дисциплины
-                        </div>
-                    }
+                    <table class="table table-bordered">
+                        <tr>
+                            <th style="width: 40%">Email:</th>
+                            <td>@Model.Email</td>
+                        </tr>
+                        <tr>
+                            <th>Телефон:</th>
+                            <td>@Model.Phone</td>
+                        </tr>
+                        <tr>
+                            <th>Адрес:</th>
+                            <td>@(Model.Address ?? "-")</td>
+                        </tr>
+                        <tr>
+                            <th>Группа:</th>
+                            <td>@(Model.Group?.Name ?? "-")</td>
+                        </tr>
+                        <tr>
+                            <th>Кафедра:</th>
+                            <td>@(Model.Department?.Name ?? "-")</td>
+                        </tr>
+                    </table>
                 </div>
+            </div>
+
+            @if (Model is FullTimeStudent fullTime)
+            {
+                <div class="alert alert-primary mt-3">
+                    <h5><i class="fas fa-graduation-cap"></i> Данные очного обучения:</h5>
+                    <p><strong>Балл ЕГЭ:</strong> @fullTime.EgeScore</p>
+                    <p><strong>Средний балл:</strong> @fullTime.AverageScore.ToString("F2")</p>
+                </div>
+            }
+            else if (Model is PartTimeStudent partTime)
+            {
+                <div class="alert alert-warning mt-3">
+                    <h5><i class="fas fa-briefcase"></i> Данные заочного обучения:</h5>
+                    <p><strong>Место работы:</strong> @partTime.WorkPlace</p>
+                    <p><strong>Должность:</strong> @partTime.Position</p>
+                    <p><strong>Стоимость обучения:</strong> @partTime.TuitionFee.ToString("C")</p>
+                </div>
+            }
+            else if (Model is TargetStudent target)
+            {
+                <div class="alert alert-danger mt-3">
+                    <h5><i class="fas fa-building"></i> Данные целевого обучения:</h5>
+                    <p><strong>Целевая компания:</strong> @target.TargetCompany</p>
+                    <p><strong>Стоимость обучения:</strong> @target.TuitionFee.ToString("C")</p>
+                </div>
+            }
+
+            @if (Model.Disciplines != null && Model.Disciplines.Any())
+            {
+                <div class="mt-3">
+                    <h5><i class="fas fa-book"></i> Дисциплины:</h5>
+                    <ul class="list-group">
+                        @foreach (var discipline in Model.Disciplines)
+                        {
+                            <li class="list-group-item">
+                                <strong>@discipline.Name</strong>
+                                @if (discipline.Teacher != null)
+                                {
+                                    <span class="text-muted"> - Преподаватель: @discipline.Teacher.FullName</span>
+                                }
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            <div class="mt-4">
+                <a asp-action="Edit" asp-route-id="@Model.RecordBookNumber" class="btn btn-warning">
+                    <i class="fas fa-edit"></i> Редактировать
+                </a>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Назад
+                </a>
             </div>
         </div>
     </div>

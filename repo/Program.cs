@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using repo.Context;
+
 using repo.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,7 +9,7 @@ builder.Services.AddControllersWithViews();
 
 
 // Регистрация DbContext и сервиса
-builder.Services.AddDbContext<UniversityDbContext>(options =>
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite("Data Source=university.db"));
 
 builder.Services.AddScoped<IUniversityDbService, UniversityDbService>();
@@ -19,7 +19,7 @@ var app = builder.Build();
 // Применяем миграции при старте приложения
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<UniversityDbContext>();
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     db.Database.Migrate();
 }
 

@@ -1,177 +1,65 @@
 @model repo.Models.Teacher
-
 @{
     ViewData["Title"] = "Детали преподавателя";
 }
 
-<div class="fade-in">
-    <div class="d-flex justify-between align-center mb-3">
-        <h2><i class="fas fa-chalkboard-user"></i> Информация о преподавателе</h2>
-        <div>
-            <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-warning">
-                <i class="fas fa-edit"></i> Редактировать
-            </a>
-            <a href="@Url.Action("Index")" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> Назад
-            </a>
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-info text-white">
+            <h4><i class="fas fa-chalkboard-teacher"></i> Детали преподавателя</h4>
         </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="fas fa-user"></i> Личные данные</h5>
-                </div>
-                <div class="card-body">
-                    <table class="table table-borderless">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table table-bordered">
                         <tr>
-                            <th style="width: 150px;">ID:</th>
+                            <th style="width: 40%">ID:</th>
                             <td>@Model.Id</td>
                         </tr>
                         <tr>
                             <th>Фамилия:</th>
-                            <td><strong>@Model.LastName</strong></td>
+                            <td>@Model.LastName</td>
                         </tr>
                         <tr>
                             <th>Имя:</th>
-                            <td><strong>@Model.FirstName</strong></td>
+                            <td>@Model.FirstName</td>
                         </tr>
                         <tr>
                             <th>Отчество:</th>
-                            <td><strong>@Model.Patronymic</strong></td>
+                            <td>@(Model.Patronymic ?? "-")</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-bordered">
+                        <tr>
+                            <th style="width: 40%">Ученая степень:</th>
+                            <td>@Model.AcademicDegree</td>
                         </tr>
                         <tr>
-                            <th>Полное имя:</th>
-                            <td><span class="badge bg-info">@Model.FullName</span></td>
+                            <th>Должность:</th>
+                            <td>@Model.Position</td>
+                        </tr>
+                        <tr>
+                            <th>Телефон:</th>
+                            <td>@Model.Phone</td>
+                        </tr>
+                        <tr>
+                            <th>Email:</th>
+                            <td>@Model.Email</td>
                         </tr>
                     </table>
                 </div>
             </div>
-        </div>
 
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Статистика</h5>
-                </div>
-                <div class="card-body">
-                    <table class="table table-borderless">
-                        <tr>
-                            <th style="width: 200px;">Количество дисциплин:</th>
-                            <td>
-                                <span class="badge bg-primary" style="font-size: 1.2rem;">
-                                    <i class="fas fa-book"></i> @ViewBag.Disciplines?.Count ?? 0
-                                </span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th>Количество студентов:</th>
-                            <td>
-                                <span class="badge bg-success" style="font-size: 1.2rem;">
-                                    <i class="fas fa-user-graduate"></i> @ViewBag.StudentsCount
-                                </span>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
+            <div class="mt-4">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+                    <i class="fas fa-edit"></i> Редактировать
+                </a>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Назад
+                </a>
             </div>
         </div>
     </div>
-
-    <div class="row">
-        <div class="col-md-12 mb-4">
-            <div class="card">
-                <div class="card-header bg-warning">
-                    <h5 class="mb-0"><i class="fas fa-book"></i> Преподаваемые дисциплины</h5>
-                </div>
-                <div class="card-body">
-                    @if (ViewBag.Disciplines != null && ViewBag.Disciplines.Count > 0)
-                    {
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Название дисциплины</th>
-                                        <th>Описание</th>
-                                        <th>Кредиты</th>
-                                        <th>Действия</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var discipline in ViewBag.Disciplines)
-                                    {
-                                        <tr>
-                                            <td>@discipline.Id</td>
-                                            <td><strong>@discipline.Name</strong></td>
-                                            <td>@(discipline.Description ?? "—")</td>
-                                            <td>@discipline.Credits</td>
-                                            <td>
-                                                <a href="@Url.Action("Details", "Disciplines", new { id = discipline.Id })" 
-                                                   class="btn btn-sm btn-info">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="alert alert-info text-center">
-                            <i class="fas fa-info-circle"></i> Преподаватель не ведет ни одной дисциплины
-                        </div>
-                    }
-                </div>
-            </div>
-        </div>
-    </div>
-
-    @if (ViewBag.Students != null && ViewBag.Students.Count > 0)
-    {
-        <div class="row">
-            <div class="col-md-12 mb-4">
-                <div class="card">
-                    <div class="card-header bg-danger text-white">
-                        <h5 class="mb-0"><i class="fas fa-user-graduate"></i> Студенты, изучающие дисциплины преподавателя</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>№ зачетки</th>
-                                        <th>ФИО студента</th>
-                                        <th>Группа</th>
-                                        <th>Кафедра</th>
-                                        <th>Действия</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var student in ViewBag.Students)
-                                    {
-                                        <tr>
-                                            <td>@student.RecordBookNumber</td>
-                                            <td>@student.LastName @student.FirstName @student.Patronymic</td>
-                                            <td>@(student.Group?.Name ?? "—")</td>
-                                            <td>@(student.Department?.Name ?? "—")</td>
-                                            <td>
-                                                <a href="@Url.Action("Details", "Students", new { id = student.RecordBookNumber })" 
-                                                   class="btn btn-sm btn-info">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
 </div>
