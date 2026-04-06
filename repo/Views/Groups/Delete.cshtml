@@ -1,69 +1,68 @@
 @model repo.Models.Group
 @{
-    ViewData["Title"] = $"Удаление группы: {Model?.Name}";
-    bool hasStudents = ViewBag.HasStudents ?? false;
-    int studentsCount = ViewBag.StudentsCount ?? 0;
+    ViewData["Title"] = "Удаление группы";
 }
 
-<div class="fade-in">
-    <div class="d-flex justify-between align-center mb-3">
-        <h2><i class="fas fa-trash-alt"></i> Удаление группы</h2>
-        <a href="@Url.Action("Index")" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Назад
-        </a>
-    </div>
-
+<div class="container mt-4">
     <div class="card">
         <div class="card-header bg-danger text-white">
-            <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Подтверждение удаления</h5>
+            <h4><i class="fas fa-exclamation-triangle"></i> Удаление группы</h4>
         </div>
         <div class="card-body">
-            @if (hasStudents)
+            @if (ViewBag.HasStudents == true)
             {
                 <div class="alert alert-danger">
-                    <i class="fas fa-ban"></i>
-                    <strong>Невозможно удалить группу!</strong>
-                    <p class="mt-2 mb-0">
-                        В группе "<strong>@Model?.Name</strong>" числится <strong>@studentsCount</strong> студентов.
-                        Перед удалением группы необходимо удалить или переместить всех студентов.
-                    </p>
+                    <h5><i class="fas fa-ban"></i> Невозможно удалить группу!</h5>
+                    <p>В группе <strong>@Model.Name</strong> числится <strong>@ViewBag.StudentsCount</strong> студентов.</p>
+                    <p>Перед удалением группы необходимо перевести или отчислить всех студентов.</p>
+                    
+                    <div class="mt-3">
+                        <h6>Список студентов:</h6>
+                        <ul class="list-group">
+                            @foreach (var student in ViewBag.Students)
+                            {
+                                <li class="list-group-item">
+                                    @student.LastName @student.FirstName @student.Patronymic
+                                    <span class="badge bg-secondary">@student.RecordBookNumber</span>
+                                </li>
+                            }
+                        </ul>
+                    </div>
                 </div>
                 
-                <div class="text-center mt-3">
-                    <a href="@Url.Action("Index", "Students")" class="btn btn-warning">
-                        <i class="fas fa-user-graduate"></i> Управление студентами
-                    </a>
-                    <a href="@Url.Action("Index")" class="btn btn-secondary">
-                        <i class="fas fa-times"></i> Отмена
-                    </a>
-                </div>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Назад к списку
+                </a>
             }
             else
             {
                 <div class="alert alert-warning">
-                    <i class="fas fa-question-circle"></i>
-                    <strong>Вы уверены, что хотите удалить группу?</strong>
-                    <p class="mt-2 mb-0">
-                        Группа: <strong>@Model?.Name</strong><br />
-                        ID: <strong>@Model?.Id</strong><br />
-                    </p>
+                    <strong>Внимание!</strong> Вы действительно хотите удалить группу?
                 </div>
 
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i>
-                    Группа пуста и может быть безопасно удалена. Это действие невозможно отменить.
-                </div>
+                <table class="table table-bordered">
+                    <tr>
+                        <th style="width: 30%">ID:</th>
+                        <td>@Model.Id</td>
+                    </tr>
+                    <tr>
+                        <th>Название группы:</th>
+                        <td>@Model.Name</td>
+                    </tr>
+                    <tr>
+                        <th>Курс:</th>
+                        <td>@Model.YearOfStudy</td>
+                    </tr>
+                </table>
 
-                <form asp-action="Delete" method="post" class="mt-3">
+                <form asp-action="Delete" method="post">
                     <input type="hidden" asp-for="Id" />
-                    <div class="form-group text-center">
-                        <button type="submit" class="btn btn-danger">
-                            <i class="fas fa-trash"></i> Да, удалить группу
-                        </button>
-                        <a href="@Url.Action("Index")" class="btn btn-secondary">
-                            <i class="fas fa-times"></i> Отмена
-                        </a>
-                    </div>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Удалить
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Отмена
+                    </a>
                 </form>
             }
         </div>

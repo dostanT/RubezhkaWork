@@ -1,71 +1,50 @@
-@model Department
-
+@model repo.Models.Department
 @{
-    ViewData["Title"] = $"Удаление: {Model.Name}";
+    ViewData["Title"] = "Удаление кафедры";
 }
 
-<div class="fade-in">
-    <div class="d-flex justify-between align-center mb-3">
-        <h2><i class="fas fa-trash-alt"></i> Удаление кафедры</h2>
-        <a href="@Url.Action("Index")" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Назад к списку
-        </a>
-    </div>
-
+<div class="container mt-4">
     <div class="card">
         <div class="card-header bg-danger text-white">
-            <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Подтверждение удаления</h5>
+            <h4><i class="fas fa-exclamation-triangle"></i> Удаление кафедры</h4>
         </div>
         <div class="card-body">
-            @if (ViewBag.HasStudents == true)
-            {
-                <div class="alert alert-danger">
-                    <i class="fas fa-ban"></i>
-                    <strong>Невозможно удалить кафедру!</strong>
-                    <p>На данной кафедре обучается <strong>@ViewBag.StudentsCount</strong> студентов.</p>
-                    <p>Перед удалением кафедры необходимо переназначить всех студентов на другую кафедру.</p>
-                </div>
-                
-                <div class="form-group mt-3">
-                    <a href="@Url.Action("Index")" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left"></i> Вернуться к списку
-                    </a>
-                </div>
-            }
-            else
-            {
-                <div class="alert alert-warning">
-                    <i class="fas fa-question-circle"></i>
-                    <strong>Вы уверены, что хотите удалить кафедру?</strong>
-                    <p>Это действие невозможно отменить.</p>
-                </div>
+            <div class="alert alert-warning">
+                <strong>Внимание!</strong> Вы действительно хотите удалить кафедру?
+            </div>
 
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">Информация о кафедре:</h5>
-                        <table class="table table-borderless">
-                            <tr>
-                                <td style="width: 150px;"><strong>ID:</strong></td>
-                                <td>@Model.Id</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Название:</strong></td>
-                                <td>@Model.Name</td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
+            <table class="table table-bordered">
+                <tr>
+                    <th style="width: 30%">ID:</th>
+                    <td>@Model.Id</td>
+                </tr>
+                <tr>
+                    <th>Название кафедры:</th>
+                    <td>@Model.Name</td>
+                </tr>
+                <tr>
+                    <th>Заведующий:</th>
+                    <td>@Model.HeadOfDepartment</td>
+                </tr>
+                <tr>
+                    <th>Телефон:</th>
+                    <td>@Model.Phone</td>
+                </tr>
+                <tr>
+                    <th>Email:</th>
+                    <td>@Model.Email</td>
+                </tr>
+            </table>
 
-                <form asp-action="Delete" method="post">
-                    <input type="hidden" asp-for="Id" />
-                    <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-trash"></i> Да, удалить
-                    </button>
-                    <a href="@Url.Action("Index")" class="btn btn-secondary">
-                        <i class="fas fa-times"></i> Нет, отмена
-                    </a>
-                </form>
-            }
+            <form asp-action="Delete" method="post">
+                <input type="hidden" asp-for="Id" />
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Удалить
+                </button>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Отмена
+                </a>
+            </form>
         </div>
     </div>
 </div>

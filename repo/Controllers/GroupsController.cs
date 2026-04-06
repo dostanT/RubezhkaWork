@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using repo.Models;
 using repo.Services;
 
@@ -24,21 +24,18 @@ namespace repo.Controllers
         }
 
         // GET: Groups/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int id)
         {
-            if (id == null)
-            {
+            if (id == 0)
                 return NotFound();
-            }
 
-            var group = await _service.GetGroupByIdAsync(id.Value);
+            var group = await _service.GetGroupByIdAsync(id);
             if (group == null)
-            {
                 return NotFound();
-            }
 
-            var students = await _service.GetStudentsInGroupAsync(id.Value);
+            var students = await _service.GetStudentsInGroupAsync(id);
             ViewBag.Students = students;
+            ViewBag.StudentsCount = students.Count;
             
             return View(group);
         }
@@ -52,80 +49,79 @@ namespace repo.Controllers
         // POST: Groups/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,YearOfStudy")] Group group)
+        public async Task<IActionResult> Create(Group group)
         {
             if (ModelState.IsValid)
             {
-                await _service.CreateGroupAsync(group);
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    await _service.CreateGroupAsync(group);
+                    TempData["Success"] = $"Группа '{group.Name}' успешно создана";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Ошибка при создании группы");
+                    ModelState.AddModelError("", "Ошибка при создании группы: " + ex.Message);
+                }
             }
             return View(group);
         }
 
         // GET: Groups/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id == null)
-            {
+            if (id == 0)
                 return NotFound();
-            }
 
-            var group = await _service.GetGroupByIdAsync(id.Value);
+            var group = await _service.GetGroupByIdAsync(id);
             if (group == null)
-            {
                 return NotFound();
-            }
+
             return View(group);
         }
 
         // POST: Groups/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,YearOfStudy")] Group group)
+        public async Task<IActionResult> Edit(int id, Group group)
         {
             if (id != group.Id)
-            {
                 return NotFound();
-            }
 
             if (ModelState.IsValid)
             {
                 try
                 {
                     await _service.UpdateGroupAsync(group);
+                    TempData["Success"] = "Данные группы обновлены";
+                    return RedirectToAction(nameof(Index));
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (Exception ex)
                 {
-                    if (!await GroupExists(group.Id))
-                    {
-                        return NotFound();
-                    }
-                    throw;
+                    _logger.LogError(ex, "Ошибка при обновлении группы");
+                    ModelState.AddModelError("", "Ошибка при обновлении группы");
                 }
-                return RedirectToAction(nameof(Index));
             }
             return View(group);
         }
 
         // GET: Groups/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public async Task<IActionResult> Delete(int id)
         {
-            if (id == null)
-            {
+            if (id == 0)
                 return NotFound();
-            }
 
-            var group = await _service.GetGroupByIdAsync(id.Value);
+            var group = await _service.GetGroupByIdAsync(id);
             if (group == null)
-            {
                 return NotFound();
-            }
 
-            var students = await _service.GetStudentsInGroupAsync(id.Value);
+            var students = await _service.GetStudentsInGroupAsync(id);
             if (students.Any())
             {
                 ViewBag.HasStudents = true;
                 ViewBag.StudentsCount = students.Count;
+                ViewBag.Students = students;
             }
 
             return View(group);
@@ -139,17 +135,13 @@ namespace repo.Controllers
             var students = await _service.GetStudentsInGroupAsync(id);
             if (students.Any())
             {
-                TempData["Error"] = "Нельзя удалить группу, в которой есть студенты";
+                TempData["Error"] = $"Нельзя удалить группу, в которой есть {students.Count} студентов";
                 return RedirectToAction(nameof(Delete), new { id });
             }
             
             await _service.DeleteGroupAsync(id);
+            TempData["Success"] = "Группа успешно удалена";
             return RedirectToAction(nameof(Index));
-        }
-
-        private async Task<bool> GroupExists(int id)
-        {
-            return await _service.ExistsAsync<Group>(g => g.Id == id);
         }
     }
 }

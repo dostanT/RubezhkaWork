@@ -1,71 +1,52 @@
 @model repo.Models.Discipline
-
 @{
     ViewData["Title"] = "Добавление дисциплины";
 }
 
-<div class="fade-in">
-    <div class="d-flex justify-between align-center mb-3">
-        <h2><i class="fas fa-plus-circle"></i> Добавить дисциплину</h2>
-        <a href="@Url.Action("Index")" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Назад
-        </a>
-    </div>
-
+<div class="container mt-4">
     <div class="card">
-        <div class="card-header bg-primary text-white">
-            <h5 class="mb-0"><i class="fas fa-book"></i> Новая дисциплина</h5>
+        <div class="card-header bg-success text-white">
+            <h4><i class="fas fa-plus-circle"></i> Добавление дисциплины</h4>
         </div>
         <div class="card-body">
             <form asp-action="Create" method="post">
                 <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
                 <div class="form-group mb-3">
-                    <label asp-for="Name" class="form-label">
-                        <i class="fas fa-tag"></i> Название дисциплины <span class="text-danger">*</span>
-                    </label>
+                    <label asp-for="Name" class="form-label">Название дисциплины *</label>
                     <input asp-for="Name" class="form-control" placeholder="Введите название дисциплины" />
                     <span asp-validation-for="Name" class="text-danger"></span>
                 </div>
 
                 <div class="form-group mb-3">
-                    <label asp-for="Grade" class="form-label">
-                        <i class="fas fa-star"></i> Оценка (по умолчанию)
-                    </label>
-                    <select asp-for="Grade" class="form-select">
-                        <option value="">— Не указана —</option>
-                        <option value="Отлично">Отлично (5)</option>
-                        <option value="Хорошо">Хорошо (4)</option>
-                        <option value="Удовлетворительно">Удовлетворительно (3)</option>
-                        <option value="Неудовлетворительно">Неудовлетворительно (2)</option>
-                        <option value="Зачет">Зачет</option>
-                        <option value="Незачет">Незачет</option>
-                    </select>
-                    <span asp-validation-for="Grade" class="text-danger"></span>
+                    <label asp-for="Description" class="form-label">Описание</label>
+                    <textarea asp-for="Description" class="form-control" rows="3" placeholder="Введите описание дисциплины"></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
                 </div>
 
-                <div class="form-group mb-3">
-                    <label asp-for="Teacher" class="form-label">
-                        <i class="fas fa-chalkboard-user"></i> Преподаватель
-                    </label>
-                    <select name="TeacherId" class="form-select">
-                        <option value="">— Не назначен —</option>
-                        @if (ViewBag.Teachers != null)
-                        {
-                            foreach (var teacher in ViewBag.Teachers)
-                            {
-                                <option value="@teacher.Id">@teacher.FullName</option>
-                            }
-                        }
-                    </select>
-                    <small class="text-muted">Можно назначить позже</small>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="Credits" class="form-label">Кредиты *</label>
+                            <input asp-for="Credits" type="number" class="form-control" min="1" max="12" />
+                            <span asp-validation-for="Credits" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="TeacherId" class="form-label">Преподаватель</label>
+                            <select asp-for="TeacherId" class="form-select" asp-items="@(ViewBag.Teachers as SelectList)">
+                                <option value="">Выберите преподавателя...</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="form-group mt-4">
-                    <button type="submit" class="btn btn-primary">
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success">
                         <i class="fas fa-save"></i> Сохранить
                     </button>
-                    <a href="@Url.Action("Index")" class="btn btn-secondary">
+                    <a asp-action="Index" class="btn btn-secondary">
                         <i class="fas fa-times"></i> Отмена
                     </a>
                 </div>

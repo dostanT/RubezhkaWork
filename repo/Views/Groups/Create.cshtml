@@ -1,19 +1,12 @@
 @model repo.Models.Group
 @{
-    ViewData["Title"] = "Создание группы";
+    ViewData["Title"] = "Добавление группы";
 }
 
-<div class="fade-in">
-    <div class="d-flex justify-between align-center mb-3">
-        <h2><i class="fas fa-plus-circle"></i> Создание новой группы</h2>
-        <a href="@Url.Action("Index")" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Назад
-        </a>
-    </div>
-
+<div class="container mt-4">
     <div class="card">
-        <div class="card-header bg-primary text-white">
-            <h5 class="mb-0"><i class="fas fa-info-circle"></i> Заполните информацию о группе</h5>
+        <div class="card-header bg-success text-white">
+            <h4><i class="fas fa-plus-circle"></i> Добавление группы</h4>
         </div>
         <div class="card-body">
             <form asp-action="Create" method="post">
@@ -22,26 +15,33 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group mb-3">
-                            <label asp-for="Name" class="form-label">
-                                <i class="fas fa-tag"></i> Название группы <span class="text-danger">*</span>
-                            </label>
-                            <input asp-for="Name" class="form-control" placeholder="Пример: ИС-21, ПИ-31, БИ-41" />
+                            <label asp-for="Name" class="form-label">Название группы *</label>
+                            <input asp-for="Name" class="form-control" placeholder="Пример: ИС-41, ПИ-31" />
                             <span asp-validation-for="Name" class="text-danger"></span>
-                            <small class="text-muted">Введите уникальное название группы</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="YearOfStudy" class="form-label">Курс *</label>
+                            <select asp-for="YearOfStudy" class="form-select">
+                                <option value="">Выберите курс...</option>
+                                <option value="1">1 курс</option>
+                                <option value="2">2 курс</option>
+                                <option value="3">3 курс</option>
+                                <option value="4">4 курс</option>
+                                <option value="5">5 курс</option>
+                                <option value="6">6 курс</option>
+                            </select>
+                            <span asp-validation-for="YearOfStudy" class="text-danger"></span>
                         </div>
                     </div>
                 </div>
 
-                <div class="alert alert-info mt-3">
-                    <i class="fas fa-info-circle"></i> 
-                    После создания группы вы сможете добавлять в нее студентов через редактирование профиля студента.
-                </div>
-
-                <div class="form-group mt-4">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Создать группу
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Сохранить
                     </button>
-                    <a href="@Url.Action("Index")" class="btn btn-secondary">
+                    <a asp-action="Index" class="btn btn-secondary">
                         <i class="fas fa-times"></i> Отмена
                     </a>
                 </div>
