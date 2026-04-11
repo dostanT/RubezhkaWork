@@ -1,6 +1,7 @@
 @model repo.Models.Student
 @{
     ViewData["Title"] = "Детали студента";
+    var studentType = Model.GetType().Name.Replace("Student", "");
 }
 
 <div class="container mt-4">
@@ -25,17 +26,21 @@
                             <td>@Model.FirstName</td>
                         </tr>
                         <tr>
+                            <th>Отчество:</th>
+                            <td>@(Model.Patronymic ?? "-")</td>
+                        </tr>
+                        <tr>
                             <th>Дата рождения:</th>
                             <td>@Model.DateOfBirth.ToString("dd.MM.yyyy")</td>
                         </tr>
                         <tr>
                             <th>Тип студента:</th>
                             <td>
-                                @if (Model.StudentType == "FullTime")
+                                @if (studentType == "FullTime")
                                 {
                                     <span class="badge bg-primary">Очник</span>
                                 }
-                                else if (Model.StudentType == "PartTime")
+                                else if (studentType == "PartTime")
                                 {
                                     <span class="badge bg-warning">Заочник</span>
                                 }
@@ -99,19 +104,20 @@
                 </div>
             }
 
-            @if (Model.Disciplines != null && Model.Disciplines.Any())
+            @if (Model.StudentDisciplines != null && Model.StudentDisciplines.Any())
             {
                 <div class="mt-3">
-                    <h5><i class="fas fa-book"></i> Дисциплины:</h5>
+                    <h5><i class="fas fa-book"></i> Дисциплины и оценки:</h5>
                     <ul class="list-group">
-                        @foreach (var discipline in Model.Disciplines)
+                        @foreach (var sd in Model.StudentDisciplines)
                         {
                             <li class="list-group-item">
-                                <strong>@discipline.Name</strong>
-                                @if (discipline.Teacher != null)
+                                <strong>@sd.Discipline.Name</strong>
+                                @if (sd.Discipline.Teacher != null)
                                 {
-                                    <span class="text-muted"> - Преподаватель: @discipline.Teacher.FullName</span>
+                                    <span class="text-muted"> - Преподаватель: @sd.Discipline.Teacher.FullName</span>
                                 }
+                                <span class="badge bg-success float-end">Оценка: @sd.Grade</span>
                             </li>
                         }
                     </ul>
@@ -119,7 +125,7 @@
             }
 
             <div class="mt-4">
-                <a asp-action="Edit" asp-route-id="@Model.RecordBookNumber" class="btn btn-warning">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
                     <i class="fas fa-edit"></i> Редактировать
                 </a>
                 <a asp-action="Index" class="btn btn-secondary">

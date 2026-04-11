@@ -24,9 +24,9 @@ namespace repo.Controllers
         }
 
         // GET: Students/Details/5
-        public async Task<IActionResult> Details(string id)
+        public async Task<IActionResult> Details(int id)
         {
-            if (string.IsNullOrEmpty(id))
+            if (id == 0)
                 return NotFound();
 
             var student = await _service.GetStudentWithDetailsAsync(id);
@@ -53,7 +53,7 @@ namespace repo.Controllers
             {
                 try
                 {
-                    Student student = null;
+                    Student? student = null;
                     
                     switch (model.StudentType)
                     {
@@ -63,14 +63,13 @@ namespace repo.Controllers
                                 RecordBookNumber = model.RecordBookNumber,
                                 FirstName = model.FirstName,
                                 LastName = model.LastName,
-                                Patronymic = model.Patronymic ?? "",  // Добавьте это
+                                Patronymic = model.Patronymic,
                                 DateOfBirth = model.DateOfBirth,
                                 Email = model.Email,
                                 Phone = model.Phone,
-                                Address = model.Address ?? "",  // Добавьте ?? ""
+                                Address = model.Address,
                                 GroupId = model.GroupId,
                                 DepartmentId = model.DepartmentId,
-                                StudentType = "FullTime",
                                 EgeScore = model.EgeScore ?? 0,
                                 AverageScore = model.AverageScore ?? 0
                             };
@@ -82,16 +81,15 @@ namespace repo.Controllers
                                 RecordBookNumber = model.RecordBookNumber,
                                 FirstName = model.FirstName,
                                 LastName = model.LastName,
-                                Patronymic = model.Patronymic ?? "",  // Добавьте это
+                                Patronymic = model.Patronymic,
                                 DateOfBirth = model.DateOfBirth,
                                 Email = model.Email,
                                 Phone = model.Phone,
-                                Address = model.Address ?? "",  // Добавьте ?? ""
+                                Address = model.Address,
                                 GroupId = model.GroupId,
                                 DepartmentId = model.DepartmentId,
-                                StudentType = "PartTime",
-                                WorkPlace = model.WorkPlace ?? "",
-                                Position = model.Position ?? "",
+                                WorkPlace = model.WorkPlace,
+                                Position = model.Position,
                                 TuitionFee = model.TuitionFee ?? 0
                             };
                             break;
@@ -102,15 +100,14 @@ namespace repo.Controllers
                                 RecordBookNumber = model.RecordBookNumber,
                                 FirstName = model.FirstName,
                                 LastName = model.LastName,
-                                Patronymic = model.Patronymic ?? "",  // Добавьте это
+                                Patronymic = model.Patronymic,
                                 DateOfBirth = model.DateOfBirth,
                                 Email = model.Email,
                                 Phone = model.Phone,
-                                Address = model.Address ?? "",  // Добавьте ?? ""
+                                Address = model.Address,
                                 GroupId = model.GroupId,
                                 DepartmentId = model.DepartmentId,
-                                StudentType = "Target",
-                                TargetCompany = model.TargetCompany ?? "",
+                                TargetCompany = model.TargetCompany,
                                 TuitionFee = model.TuitionFee ?? 0
                             };
                             break;
@@ -136,17 +133,22 @@ namespace repo.Controllers
         }
 
         // GET: Students/Edit/5
-        public async Task<IActionResult> Edit(string id)
+        public async Task<IActionResult> Edit(int id)
         {
-            if (string.IsNullOrEmpty(id))
+            if (id == 0)
                 return NotFound();
 
-            var student = await _service.GetStudentByIdAsync(id);
+            var student = await _service.GetStudentWithDetailsAsync(id);
             if (student == null)
                 return NotFound();
             
+            // Определяем тип студента через GetType()
+            string studentType = student.GetType().Name;
+            studentType = studentType.Replace("Student", ""); // "FullTimeStudent" -> "FullTime"
+            
             var model = new StudentEditViewModel
             {
+                Id = student.Id,
                 RecordBookNumber = student.RecordBookNumber,
                 FirstName = student.FirstName,
                 LastName = student.LastName,
@@ -157,7 +159,7 @@ namespace repo.Controllers
                 Address = student.Address,
                 GroupId = student.GroupId,
                 DepartmentId = student.DepartmentId,
-                StudentType = student.StudentType
+                StudentType = studentType
             };
             
             // Заполняем специфические поля
@@ -189,9 +191,9 @@ namespace repo.Controllers
         // POST: Students/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, StudentEditViewModel model)
+        public async Task<IActionResult> Edit(int id, StudentEditViewModel model)
         {
-            if (id != model.RecordBookNumber)
+            if (id != model.Id)
                 return NotFound();
 
             if (ModelState.IsValid)
@@ -203,6 +205,7 @@ namespace repo.Controllers
                         return NotFound();
                     
                     // Обновляем общие поля
+                    student.RecordBookNumber = model.RecordBookNumber;
                     student.FirstName = model.FirstName;
                     student.LastName = model.LastName;
                     student.Patronymic = model.Patronymic;
@@ -221,13 +224,13 @@ namespace repo.Controllers
                     }
                     else if (student is PartTimeStudent partTime)
                     {
-                        partTime.WorkPlace = model.WorkPlace ?? "";
-                        partTime.Position = model.Position ?? "";
+                        partTime.WorkPlace = model.WorkPlace;
+                        partTime.Position = model.Position;
                         partTime.TuitionFee = model.TuitionFee ?? 0;
                     }
                     else if (student is TargetStudent target)
                     {
-                        target.TargetCompany = model.TargetCompany ?? "";
+                        target.TargetCompany = model.TargetCompany;
                         target.TuitionFee = model.TuitionFee ?? 0;
                     }
                     
@@ -248,9 +251,9 @@ namespace repo.Controllers
         }
 
         // GET: Students/Delete/5
-        public async Task<IActionResult> Delete(string id)
+        public async Task<IActionResult> Delete(int id)
         {
-            if (string.IsNullOrEmpty(id))
+            if (id == 0)
                 return NotFound();
 
             var student = await _service.GetStudentByIdAsync(id);
@@ -263,7 +266,7 @@ namespace repo.Controllers
         // POST: Students/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(string id)
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
             await _service.DeleteStudentAsync(id);
             TempData["Success"] = "Студент удален";
@@ -272,14 +275,14 @@ namespace repo.Controllers
 
         // POST: Students/AssignDiscipline
         [HttpPost]
-        public async Task<IActionResult> AssignDiscipline(string studentId, int disciplineId)
+        public async Task<IActionResult> AssignDiscipline(int studentId, int disciplineId, string grade)
         {
-            if (string.IsNullOrEmpty(studentId) || disciplineId == 0)
+            if (studentId == 0 || disciplineId == 0)
                 return BadRequest();
 
             try
             {
-                await _service.AssignDisciplineAsync(studentId, disciplineId);
+                await _service.AssignDisciplineAsync(studentId, disciplineId, grade);
                 TempData["Success"] = "Дисциплина добавлена";
             }
             catch (Exception ex)
@@ -292,15 +295,35 @@ namespace repo.Controllers
 
         // POST: Students/RemoveDiscipline
         [HttpPost]
-        public async Task<IActionResult> RemoveDiscipline(string studentId, int disciplineId)
+        public async Task<IActionResult> RemoveDiscipline(int studentId, int disciplineId)
         {
-            if (string.IsNullOrEmpty(studentId) || disciplineId == 0)
+            if (studentId == 0 || disciplineId == 0)
                 return BadRequest();
 
             try
             {
                 await _service.RemoveDisciplineAsync(studentId, disciplineId);
                 TempData["Success"] = "Дисциплина удалена";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(Edit), new { id = studentId });
+        }
+
+        // POST: Students/UpdateGrade
+        [HttpPost]
+        public async Task<IActionResult> UpdateGrade(int studentId, int disciplineId, string grade)
+        {
+            if (studentId == 0 || disciplineId == 0)
+                return BadRequest();
+
+            try
+            {
+                await _service.UpdateGradeAsync(studentId, disciplineId, grade);
+                TempData["Success"] = "Оценка обновлена";
             }
             catch (Exception ex)
             {
@@ -320,8 +343,8 @@ public class StudentCreateViewModel
     public string LastName { get; set; } = null!;
     public string? Patronymic { get; set; }
     public DateTime DateOfBirth { get; set; }
-    public string Email { get; set; } = null!;
-    public string Phone { get; set; } = null!;
+    public string? Email { get; set; }
+    public string? Phone { get; set; }
     public string? Address { get; set; }
     public int? GroupId { get; set; }
     public int? DepartmentId { get; set; }
@@ -343,13 +366,14 @@ public class StudentCreateViewModel
 // ViewModel для редактирования студента
 public class StudentEditViewModel
 {
+    public int Id { get; set; }
     public string RecordBookNumber { get; set; } = null!;
     public string FirstName { get; set; } = null!;
     public string LastName { get; set; } = null!;
     public string? Patronymic { get; set; }
     public DateTime DateOfBirth { get; set; }
-    public string Email { get; set; } = null!;
-    public string Phone { get; set; } = null!;
+    public string? Email { get; set; }
+    public string? Phone { get; set; }
     public string? Address { get; set; }
     public int? GroupId { get; set; }
     public int? DepartmentId { get; set; }

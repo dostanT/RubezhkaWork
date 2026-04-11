@@ -6,9 +6,14 @@
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2><i class="fas fa-users"></i> Список студентов</h2>
-        <a asp-action="Create" class="btn btn-success">
-            <i class="fas fa-plus"></i> Добавить студента
-        </a>
+        <div>
+            <a asp-action="Filter" class="btn btn-info me-2">
+                <i class="fas fa-filter"></i> Фильтр
+            </a>
+            <a asp-action="Create" class="btn btn-success">
+                <i class="fas fa-plus"></i> Добавить студента
+            </a>
+        </div>
     </div>
 
     @if (TempData["Success"] != null)
@@ -46,16 +51,17 @@
                     <tbody>
                         @foreach (var student in Model)
                         {
+                            var studentType = student.GetType().Name.Replace("Student", "");
                             <tr>
                                 <td>@student.RecordBookNumber</td>
                                 <td>@student.LastName</td>
                                 <td>@student.FirstName</td>
                                 <td>
-                                    @if (student.StudentType == "FullTime")
+                                    @if (studentType == "FullTime")
                                     {
                                         <span class="badge bg-primary">Очник</span>
                                     }
-                                    else if (student.StudentType == "PartTime")
+                                    else if (studentType == "PartTime")
                                     {
                                         <span class="badge bg-warning">Заочник</span>
                                     }
@@ -68,13 +74,13 @@
                                 <td>@(student.Department?.Name ?? "-")</td>
                                 <td>@student.Email</td>
                                 <td>
-                                    <a asp-action="Details" asp-route-id="@student.RecordBookNumber" class="btn btn-sm btn-info">
+                                    <a asp-action="Details" asp-route-id="@student.Id" class="btn btn-sm btn-info">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <a asp-action="Edit" asp-route-id="@student.RecordBookNumber" class="btn btn-sm btn-warning">
+                                    <a asp-action="Edit" asp-route-id="@student.Id" class="btn btn-sm btn-warning">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <a asp-action="Delete" asp-route-id="@student.RecordBookNumber" class="btn btn-sm btn-danger">
+                                    <a asp-action="Delete" asp-route-id="@student.Id" class="btn btn-sm btn-danger">
                                         <i class="fas fa-trash"></i>
                                     </a>
                                 </td>

@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-
+using repo.Data;
 using repo.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,6 +23,7 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
 }
 
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -39,5 +40,11 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    DbInitializer.Initialize(dbContext);
+}
 
 app.Run();

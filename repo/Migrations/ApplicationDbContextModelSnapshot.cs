@@ -23,12 +23,10 @@ namespace repo.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Email")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("HeadOfDepartment")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
@@ -38,11 +36,12 @@ namespace repo.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Phone")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Name");
 
                     b.ToTable("Departments");
                 });
@@ -57,12 +56,7 @@ namespace repo.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Grade")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Name")
@@ -70,15 +64,12 @@ namespace repo.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("StudentRecordBookNumber")
-                        .HasColumnType("TEXT");
-
                     b.Property<int?>("TeacherId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("StudentRecordBookNumber");
+                    b.HasIndex("Name");
 
                     b.HasIndex("TeacherId");
 
@@ -91,6 +82,9 @@ namespace repo.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("DepartmentId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -101,17 +95,20 @@ namespace repo.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("DepartmentId");
+
+                    b.HasIndex("Name");
+
                     b.ToTable("Groups");
                 });
 
             modelBuilder.Entity("repo.Models.Student", b =>
                 {
-                    b.Property<string>("RecordBookNumber")
-                        .HasMaxLength(20)
-                        .HasColumnType("TEXT");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Address")
-                        .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
@@ -122,7 +119,6 @@ namespace repo.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Email")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
@@ -144,26 +140,60 @@ namespace repo.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Phone")
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RecordBookNumber")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("StudentType")
                         .IsRequired()
-                        .HasMaxLength(20)
+                        .HasMaxLength(8)
                         .HasColumnType("TEXT");
 
-                    b.HasKey("RecordBookNumber");
+                    b.HasKey("Id");
 
                     b.HasIndex("DepartmentId");
 
                     b.HasIndex("GroupId");
+
+                    b.HasIndex("RecordBookNumber")
+                        .IsUnique();
+
+                    b.HasIndex("LastName", "FirstName");
 
                     b.ToTable("Students");
 
                     b.HasDiscriminator<string>("StudentType").HasValue("Student");
 
                     b.UseTphMappingStrategy();
+                });
+
+            modelBuilder.Entity("repo.Models.StudentDiscipline", b =>
+                {
+                    b.Property<int>("StudentId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnOrder(0);
+
+                    b.Property<int>("DisciplineId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnOrder(1);
+
+                    b.Property<DateTime?>("DateReceived")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Grade")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("StudentId", "DisciplineId");
+
+                    b.HasIndex("DisciplineId");
+
+                    b.ToTable("StudentDisciplines");
                 });
 
             modelBuilder.Entity("repo.Models.Teacher", b =>
@@ -173,12 +203,10 @@ namespace repo.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("AcademicDegree")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Email")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
@@ -197,12 +225,10 @@ namespace repo.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Phone")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Position")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
@@ -229,7 +255,6 @@ namespace repo.Migrations
                     b.HasBaseType("repo.Models.Student");
 
                     b.Property<string>("Position")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
@@ -237,7 +262,6 @@ namespace repo.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("WorkPlace")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
@@ -249,7 +273,6 @@ namespace repo.Migrations
                     b.HasBaseType("repo.Models.Student");
 
                     b.Property<string>("TargetCompany")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
@@ -267,35 +290,71 @@ namespace repo.Migrations
 
             modelBuilder.Entity("repo.Models.Discipline", b =>
                 {
-                    b.HasOne("repo.Models.Student", null)
-                        .WithMany("Disciplines")
-                        .HasForeignKey("StudentRecordBookNumber");
-
                     b.HasOne("repo.Models.Teacher", "Teacher")
                         .WithMany("Disciplines")
-                        .HasForeignKey("TeacherId");
+                        .HasForeignKey("TeacherId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Teacher");
+                });
+
+            modelBuilder.Entity("repo.Models.Group", b =>
+                {
+                    b.HasOne("repo.Models.Department", "Department")
+                        .WithMany("Groups")
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .IsRequired();
+
+                    b.Navigation("Department");
                 });
 
             modelBuilder.Entity("repo.Models.Student", b =>
                 {
                     b.HasOne("repo.Models.Department", "Department")
                         .WithMany("Students")
-                        .HasForeignKey("DepartmentId");
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("repo.Models.Group", "Group")
                         .WithMany("Students")
-                        .HasForeignKey("GroupId");
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Department");
 
                     b.Navigation("Group");
                 });
 
+            modelBuilder.Entity("repo.Models.StudentDiscipline", b =>
+                {
+                    b.HasOne("repo.Models.Discipline", "Discipline")
+                        .WithMany("StudentDisciplines")
+                        .HasForeignKey("DisciplineId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("repo.Models.Student", "Student")
+                        .WithMany("StudentDisciplines")
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Discipline");
+
+                    b.Navigation("Student");
+                });
+
             modelBuilder.Entity("repo.Models.Department", b =>
                 {
+                    b.Navigation("Groups");
+
                     b.Navigation("Students");
+                });
+
+            modelBuilder.Entity("repo.Models.Discipline", b =>
+                {
+                    b.Navigation("StudentDisciplines");
                 });
 
             modelBuilder.Entity("repo.Models.Group", b =>
@@ -305,7 +364,7 @@ namespace repo.Migrations
 
             modelBuilder.Entity("repo.Models.Student", b =>
                 {
-                    b.Navigation("Disciplines");
+                    b.Navigation("StudentDisciplines");
                 });
 
             modelBuilder.Entity("repo.Models.Teacher", b =>

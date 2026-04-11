@@ -1,6 +1,7 @@
 @model repo.Models.Student
 @{
     ViewData["Title"] = "Удаление студента";
+    var studentType = Model.GetType().Name.Replace("Student", "");
 }
 
 <div class="container mt-4">
@@ -20,16 +21,16 @@
                 </tr>
                 <tr>
                     <th>ФИО:</th>
-                    <td>@Model.LastName @Model.FirstName </td>
+                    <td>@Model.LastName @Model.FirstName @Model.Patronymic</td>
                 </tr>
                 <tr>
                     <th>Тип студента:</th>
                     <td>
-                        @if (Model.StudentType == "FullTime")
+                        @if (studentType == "FullTime")
                         {
                             <span class="badge bg-primary">Очник</span>
                         }
-                        else if (Model.StudentType == "PartTime")
+                        else if (studentType == "PartTime")
                         {
                             <span class="badge bg-warning">Заочник</span>
                         }
@@ -50,7 +51,7 @@
             </table>
 
             <form asp-action="Delete" method="post">
-                <input type="hidden" asp-for="RecordBookNumber" />
+                <input type="hidden" asp-for="Id" />
                 <button type="submit" class="btn btn-danger">
                     <i class="fas fa-trash"></i> Удалить
                 </button>

@@ -7,11 +7,12 @@ namespace repo.Services
     {
         // ==================== ОСНОВНЫЕ CRUD ДЛЯ СТУДЕНТОВ ====================
         Task<List<Student>> GetAllStudentsAsync();
-        Task<Student?> GetStudentByIdAsync(string recordBookNumber);
-        Task<Student?> GetStudentWithDetailsAsync(string recordBookNumber);
+        Task<Student?> GetStudentByIdAsync(int id);
+        Task<Student?> GetStudentByRecordBookAsync(string recordBookNumber);
+        Task<Student?> GetStudentWithDetailsAsync(int id);
         Task CreateStudentAsync(Student student);
         Task UpdateStudentAsync(Student student);
-        Task DeleteStudentAsync(string recordBookNumber);
+        Task DeleteStudentAsync(int id);
         
         // ==================== ПОИСК И ФИЛЬТРАЦИЯ ====================
         Task<List<Student>> GetStudentsByGroupAsync(string groupName);
@@ -23,27 +24,28 @@ namespace repo.Services
         Task<List<TargetStudent>> GetTargetStudentsAsync();
         
         // ==================== РАБОТА С ДИСЦИПЛИНАМИ ====================
-        Task AssignDisciplineAsync(string studentId, int disciplineId);
-        Task RemoveDisciplineAsync(string studentId, int disciplineId);
-        Task<List<Discipline>> GetStudentDisciplinesAsync(string studentId);
+        Task AssignDisciplineAsync(int studentId, int disciplineId, string grade);
+        Task RemoveDisciplineAsync(int studentId, int disciplineId);
+        Task UpdateGradeAsync(int studentId, int disciplineId, string grade);
+        Task<List<StudentDiscipline>> GetStudentDisciplinesAsync(int studentId);
         
         // ==================== СТАТИСТИКА ====================
         Task<int> GetTotalStudentsCountAsync();
-        Task<double> CalculateAverageScoreAsync(string studentId);
+        Task<double> CalculateAverageScoreAsync(int studentId);
         Task<List<Student>> GetTopStudentsAsync(int count);
         Task<Dictionary<string, int>> GetStudentCountByGroupAsync();
         
         // ==================== РАБОТА С ГРУППАМИ ====================
         Task<List<Group>> GetAllGroupsAsync();
         Task<Group?> GetGroupByIdAsync(int id);
-        Task<Group?> GetGroupWithStudentsAsync(string groupName);
+        Task<Group?> GetGroupWithStudentsAsync(int id);
         Task<List<Group>> GetAllGroupsWithStudentsAsync();
         Task CreateGroupAsync(Group group);
         Task UpdateGroupAsync(Group group);
         Task DeleteGroupAsync(int id);
         Task<List<Student>> GetStudentsInGroupAsync(int groupId);
-        Task AddStudentToGroupAsync(string studentId, int groupId);
-        Task RemoveStudentFromGroupAsync(string studentId);
+        Task AddStudentToGroupAsync(int studentId, int groupId);
+        Task RemoveStudentFromGroupAsync(int studentId);
         
         // ==================== РАБОТА С КАФЕДРАМИ ====================
         Task<List<Department>> GetAllDepartmentsAsync();
@@ -86,7 +88,6 @@ namespace repo.Services
         
         // ==================== ОСНОВНЫЕ CRUD ДЛЯ СТУДЕНТОВ ====================
         
-        // В методах GetAllStudentsAsync, GetStudentByIdAsync и др.
         public async Task<List<Student>> GetAllStudentsAsync()
         {
             try
@@ -94,7 +95,8 @@ namespace repo.Services
                 return await _context.Students
                     .Include(s => s.Group)
                     .Include(s => s.Department)
-                    .Include(s => s.Disciplines)
+                    .Include(s => s.StudentDisciplines)
+                        .ThenInclude(sd => sd.Discipline)
                         .ThenInclude(d => d.Teacher)
                     .ToListAsync();
             }
@@ -105,27 +107,47 @@ namespace repo.Services
             }
         }
         
-        public async Task<Student?> GetStudentByIdAsync(string recordBookNumber)
+        public async Task<Student?> GetStudentByIdAsync(int id)
         {
             try
             {
                 return await _context.Students
                     .Include(s => s.Group)
                     .Include(s => s.Department)
-                    .Include(s => s.Disciplines)
-                    .ThenInclude(d => d.Teacher)
-                    .FirstOrDefaultAsync(s => s.RecordBookNumber == recordBookNumber);
+                    .Include(s => s.StudentDisciplines)
+                        .ThenInclude(sd => sd.Discipline)
+                        .ThenInclude(d => d.Teacher)
+                    .FirstOrDefaultAsync(s => s.Id == id);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Ошибка при получении студента с номером {RecordBookNumber}", recordBookNumber);
+                _logger.LogError(ex, "Ошибка при получении студента с ID {Id}", id);
                 throw;
             }
         }
         
-        public async Task<Student?> GetStudentWithDetailsAsync(string recordBookNumber)
+        public async Task<Student?> GetStudentByRecordBookAsync(string recordBookNumber)
         {
-            return await GetStudentByIdAsync(recordBookNumber);
+            try
+            {
+                return await _context.Students
+                    .Include(s => s.Group)
+                    .Include(s => s.Department)
+                    .Include(s => s.StudentDisciplines)
+                        .ThenInclude(sd => sd.Discipline)
+                        .ThenInclude(d => d.Teacher)
+                    .FirstOrDefaultAsync(s => s.RecordBookNumber == recordBookNumber);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Ошибка при получении студента с номером зачетки {RecordBookNumber}", recordBookNumber);
+                throw;
+            }
+        }
+        
+        public async Task<Student?> GetStudentWithDetailsAsync(int id)
+        {
+            return await GetStudentByIdAsync(id);
         }
         
         public async Task CreateStudentAsync(Student student)
@@ -149,11 +171,11 @@ namespace repo.Services
             {
                 _context.Entry(student).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
-                _logger.LogInformation("Студент {RecordBookNumber} успешно обновлен", student.RecordBookNumber);
+                _logger.LogInformation("Студент ID {Id} успешно обновлен", student.Id);
             }
             catch (DbUpdateConcurrencyException ex)
             {
-                _logger.LogError(ex, "Конфликт при обновлении студента {RecordBookNumber}", student.RecordBookNumber);
+                _logger.LogError(ex, "Конфликт при обновлении студента ID {Id}", student.Id);
                 throw;
             }
             catch (Exception ex)
@@ -163,21 +185,21 @@ namespace repo.Services
             }
         }
         
-        public async Task DeleteStudentAsync(string recordBookNumber)
+        public async Task DeleteStudentAsync(int id)
         {
             try
             {
-                var student = await GetStudentByIdAsync(recordBookNumber);
+                var student = await GetStudentByIdAsync(id);
                 if (student != null)
                 {
                     _context.Students.Remove(student);
                     await _context.SaveChangesAsync();
-                    _logger.LogInformation("Студент {RecordBookNumber} успешно удален", recordBookNumber);
+                    _logger.LogInformation("Студент ID {Id} успешно удален", id);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Ошибка при удалении студента {RecordBookNumber}", recordBookNumber);
+                _logger.LogError(ex, "Ошибка при удалении студента ID {Id}", id);
                 throw;
             }
         }
@@ -191,7 +213,8 @@ namespace repo.Services
                 return await _context.Students
                     .Include(s => s.Group)
                     .Include(s => s.Department)
-                    .Include(s => s.Disciplines)
+                    .Include(s => s.StudentDisciplines)
+                        .ThenInclude(sd => sd.Discipline)
                     .Where(s => s.Group != null && s.Group.Name == groupName)
                     .ToListAsync();
             }
@@ -209,7 +232,8 @@ namespace repo.Services
                 return await _context.Students
                     .Include(s => s.Group)
                     .Include(s => s.Department)
-                    .Include(s => s.Disciplines)
+                    .Include(s => s.StudentDisciplines)
+                        .ThenInclude(sd => sd.Discipline)
                     .Where(s => s.Department != null && s.Department.Name == departmentName)
                     .ToListAsync();
             }
@@ -227,8 +251,9 @@ namespace repo.Services
                 return await _context.Students
                     .Include(s => s.Group)
                     .Include(s => s.Department)
-                    .Include(s => s.Disciplines)
-                    .Where(s => s.Disciplines.Any(d => d.Name == disciplineName))
+                    .Include(s => s.StudentDisciplines)
+                        .ThenInclude(sd => sd.Discipline)
+                    .Where(s => s.StudentDisciplines.Any(sd => sd.Discipline.Name == disciplineName))
                     .ToListAsync();
             }
             catch (Exception ex)
@@ -245,9 +270,10 @@ namespace repo.Services
                 return await _context.Students
                     .Include(s => s.Group)
                     .Include(s => s.Department)
-                    .Include(s => s.Disciplines)
-                    .ThenInclude(d => d.Teacher)
-                    .Where(s => s.Disciplines.Any(d => d.Teacher != null && d.Teacher.LastName == teacherLastName))
+                    .Include(s => s.StudentDisciplines)
+                        .ThenInclude(sd => sd.Discipline)
+                        .ThenInclude(d => d.Teacher)
+                    .Where(s => s.StudentDisciplines.Any(sd => sd.Discipline.Teacher != null && sd.Discipline.Teacher.LastName == teacherLastName))
                     .ToListAsync();
             }
             catch (Exception ex)
@@ -263,7 +289,8 @@ namespace repo.Services
                 .OfType<FullTimeStudent>()
                 .Include(s => s.Group)
                 .Include(s => s.Department)
-                .Include(s => s.Disciplines)
+                .Include(s => s.StudentDisciplines)
+                    .ThenInclude(sd => sd.Discipline)
                 .ToListAsync();
         }
         
@@ -273,7 +300,8 @@ namespace repo.Services
                 .OfType<PartTimeStudent>()
                 .Include(s => s.Group)
                 .Include(s => s.Department)
-                .Include(s => s.Disciplines)
+                .Include(s => s.StudentDisciplines)
+                    .ThenInclude(sd => sd.Discipline)
                 .ToListAsync();
         }
         
@@ -283,32 +311,37 @@ namespace repo.Services
                 .OfType<TargetStudent>()
                 .Include(s => s.Group)
                 .Include(s => s.Department)
-                .Include(s => s.Disciplines)
+                .Include(s => s.StudentDisciplines)
+                    .ThenInclude(sd => sd.Discipline)
                 .ToListAsync();
         }
         
-        // ==================== РАБОТА С ДИСЦИПЛИНАМИ ====================
+        // ==================== РАБОТА С ДИСЦИПЛИНАМИ (НОВАЯ ВЕРСИЯ) ====================
         
-        public async Task AssignDisciplineAsync(string studentId, int disciplineId)
+        public async Task AssignDisciplineAsync(int studentId, int disciplineId, string grade)
         {
             try
             {
-                // Загружаем студента с дисциплинами
-                var student = await _context.Students
-                    .Include(s => s.Disciplines)
-                    .FirstOrDefaultAsync(s => s.RecordBookNumber == studentId);
-                    
-                var discipline = await _context.Disciplines.FindAsync(disciplineId);
+                var existing = await _context.StudentDisciplines
+                    .FirstOrDefaultAsync(sd => sd.StudentId == studentId && sd.DisciplineId == disciplineId);
                 
-                if (student == null || discipline == null)
-                    throw new ArgumentException("Студент или дисциплина не найдены");
-                
-                if (!student.Disciplines.Any(d => d.Id == disciplineId))
+                if (existing != null)
                 {
-                    student.Disciplines.Add(discipline);
-                    await _context.SaveChangesAsync();
-                    _logger.LogInformation("Дисциплина {DisciplineId} добавлена студенту {StudentId}", disciplineId, studentId);
+                    _logger.LogWarning("Дисциплина уже назначена студенту");
+                    return;
                 }
+                
+                var studentDiscipline = new StudentDiscipline
+                {
+                    StudentId = studentId,
+                    DisciplineId = disciplineId,
+                    Grade = grade,
+                    DateReceived = DateTime.Now
+                };
+                
+                await _context.StudentDisciplines.AddAsync(studentDiscipline);
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Дисциплина {DisciplineId} добавлена студенту {StudentId}", disciplineId, studentId);
             }
             catch (Exception ex)
             {
@@ -316,24 +349,19 @@ namespace repo.Services
                 throw;
             }
         }
-
-        public async Task RemoveDisciplineAsync(string studentId, int disciplineId)
+        
+        public async Task RemoveDisciplineAsync(int studentId, int disciplineId)
         {
             try
             {
-                var student = await _context.Students
-                    .Include(s => s.Disciplines)
-                    .FirstOrDefaultAsync(s => s.RecordBookNumber == studentId);
+                var studentDiscipline = await _context.StudentDisciplines
+                    .FirstOrDefaultAsync(sd => sd.StudentId == studentId && sd.DisciplineId == disciplineId);
                     
-                if (student != null)
+                if (studentDiscipline != null)
                 {
-                    var discipline = student.Disciplines.FirstOrDefault(d => d.Id == disciplineId);
-                    if (discipline != null)
-                    {
-                        student.Disciplines.Remove(discipline);
-                        await _context.SaveChangesAsync();
-                        _logger.LogInformation("Дисциплина {DisciplineId} удалена у студента {StudentId}", disciplineId, studentId);
-                    }
+                    _context.StudentDisciplines.Remove(studentDiscipline);
+                    await _context.SaveChangesAsync();
+                    _logger.LogInformation("Дисциплина {DisciplineId} удалена у студента {StudentId}", disciplineId, studentId);
                 }
             }
             catch (Exception ex)
@@ -343,14 +371,35 @@ namespace repo.Services
             }
         }
         
-        public async Task<List<Discipline>> GetStudentDisciplinesAsync(string studentId)
+        public async Task UpdateGradeAsync(int studentId, int disciplineId, string grade)
         {
-            var student = await _context.Students
-                .Include(s => s.Disciplines)
-                .ThenInclude(d => d.Teacher)
-                .FirstOrDefaultAsync(s => s.RecordBookNumber == studentId);
-                
-            return student?.Disciplines.ToList() ?? new List<Discipline>();
+            try
+            {
+                var studentDiscipline = await _context.StudentDisciplines
+                    .FirstOrDefaultAsync(sd => sd.StudentId == studentId && sd.DisciplineId == disciplineId);
+                    
+                if (studentDiscipline != null)
+                {
+                    studentDiscipline.Grade = grade;
+                    studentDiscipline.DateReceived = DateTime.Now;
+                    await _context.SaveChangesAsync();
+                    _logger.LogInformation("Оценка обновлена для студента {StudentId} по дисциплине {DisciplineId}", studentId, disciplineId);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Ошибка при обновлении оценки");
+                throw;
+            }
+        }
+        
+        public async Task<List<StudentDiscipline>> GetStudentDisciplinesAsync(int studentId)
+        {
+            return await _context.StudentDisciplines
+                .Include(sd => sd.Discipline)
+                    .ThenInclude(d => d.Teacher)
+                .Where(sd => sd.StudentId == studentId)
+                .ToListAsync();
         }
         
         // ==================== СТАТИСТИКА ====================
@@ -360,28 +409,41 @@ namespace repo.Services
             return await _context.Students.CountAsync();
         }
         
-        public async Task<double> CalculateAverageScoreAsync(string studentId)
+        public async Task<double> CalculateAverageScoreAsync(int studentId)
         {
-            var student = await GetStudentByIdAsync(studentId);
-            if (student is FullTimeStudent fullTime)
+            var studentDisciplines = await GetStudentDisciplinesAsync(studentId);
+            if (studentDisciplines.Count == 0) return 0;
+            
+            var gradeMap = new Dictionary<string, double>
             {
-                return fullTime.AverageScore;
+                { "5", 5 }, { "5+", 5 },
+                { "4", 4 }, { "4+", 4 },
+                { "3", 3 }, { "3+", 3 },
+                { "2", 2 }, { "2+", 2 },
+                { "зачет", 5 }, { "зачтено", 5 }
+            };
+            
+            double sum = 0;
+            foreach (var sd in studentDisciplines)
+            {
+                if (gradeMap.ContainsKey(sd.Grade))
+                    sum += gradeMap[sd.Grade];
             }
-            return 0;
+            
+            return sum / studentDisciplines.Count;
         }
         
         public async Task<List<Student>> GetTopStudentsAsync(int count)
         {
-            return await _context.Students
-                .OfType<FullTimeStudent>()
-                .OrderByDescending(s => ((FullTimeStudent)s).AverageScore)
+            var allStudents = await GetAllStudentsAsync();
+            var studentsWithAvg = allStudents
+                .Select(s => new { Student = s, Avg = s.GetAverageGrade() })
+                .OrderByDescending(x => x.Avg)
                 .Take(count)
-                .Include(s => s.Group)
-                .Include(s => s.Department)
-                .Include(s => s.Disciplines)
-                .ThenInclude(d => d.Teacher)
-                .Select(s => (Student)s)  // Явное приведение
-                .ToListAsync();
+                .Select(x => x.Student)
+                .ToList();
+            
+            return studentsWithAvg;
         }
         
         public async Task<Dictionary<string, int>> GetStudentCountByGroupAsync()
@@ -405,12 +467,12 @@ namespace repo.Services
             return await _context.Groups.FindAsync(id);
         }
         
-        public async Task<Group?> GetGroupWithStudentsAsync(string groupName)
+        public async Task<Group?> GetGroupWithStudentsAsync(int id)
         {
             return await _context.Groups
                 .Include(g => g.Students)
-                .ThenInclude(s => s.Disciplines)
-                .FirstOrDefaultAsync(g => g.Name == groupName);
+                    .ThenInclude(s => s.StudentDisciplines)
+                .FirstOrDefaultAsync(g => g.Id == id);
         }
         
         public async Task<List<Group>> GetAllGroupsWithStudentsAsync()
@@ -446,11 +508,12 @@ namespace repo.Services
         {
             return await _context.Students
                 .Where(s => s.Group != null && s.Group.Id == groupId)
-                .Include(s => s.Disciplines)
+                .Include(s => s.StudentDisciplines)
+                    .ThenInclude(sd => sd.Discipline)
                 .ToListAsync();
         }
         
-        public async Task AddStudentToGroupAsync(string studentId, int groupId)
+        public async Task AddStudentToGroupAsync(int studentId, int groupId)
         {
             var student = await GetStudentByIdAsync(studentId);
             var group = await GetGroupByIdAsync(groupId);
@@ -462,7 +525,7 @@ namespace repo.Services
             }
         }
         
-        public async Task RemoveStudentFromGroupAsync(string studentId)
+        public async Task RemoveStudentFromGroupAsync(int studentId)
         {
             var student = await GetStudentByIdAsync(studentId);
             if (student != null)
@@ -506,7 +569,7 @@ namespace repo.Services
             }
         }
         
-        // ==================== РАБОТА С ДИСЦИПЛИНАМИ (полный CRUD) ====================
+        // ==================== РАБОТА С ДИСЦИПЛИНАМИ ====================
         
         public async Task<List<Discipline>> GetAllDisciplinesAsync()
         {
@@ -537,47 +600,6 @@ namespace repo.Services
         {
             _context.Entry(discipline).State = EntityState.Modified;
             await _context.SaveChangesAsync();
-        }
-
-        public async Task<List<Student>> GetStudentsByTypeAsync(string studentType)
-        {
-            try
-            {
-                return await _context.Students
-                    .Where(s => s.StudentType == studentType)
-                    .Include(s => s.Group)
-                    .Include(s => s.Department)
-                    .Include(s => s.Disciplines)
-                    .ThenInclude(d => d.Teacher)
-                    .ToListAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Ошибка при поиске студентов по типу {StudentType}", studentType);
-                throw;
-            }
-        }
-
-        public async Task<List<GroupWithCountDto>> GetGroupsWithStudentCountAsync()
-        {
-            return await _context.Groups
-                .Select(g => new GroupWithCountDto
-                {
-                    Id = g.Id,
-                    Name = g.Name,
-                    YearOfStudy = g.YearOfStudy,
-                    StudentCount = g.Students.Count
-                })
-                .ToListAsync();
-        }
-
-        // DTO класс
-        public class GroupWithCountDto
-        {
-            public int Id { get; set; }
-            public string? Name { get; set; } = null;
-            public int YearOfStudy { get; set; }
-            public int StudentCount { get; set; }
         }
         
         public async Task DeleteDisciplineAsync(int id)
