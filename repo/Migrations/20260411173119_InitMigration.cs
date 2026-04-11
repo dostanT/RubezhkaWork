@@ -54,7 +54,9 @@ namespace repo.Migrations
                     AcademicDegree = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
                     Position = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
                     Phone = table.Column<string>(type: "TEXT", maxLength: 20, nullable: true),
-                    Email = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true)
+                    Email = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
+                    Login = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
+                    Password = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -120,6 +122,8 @@ namespace repo.Migrations
                     Address = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
                     GroupId = table.Column<int>(type: "INTEGER", nullable: true),
                     DepartmentId = table.Column<int>(type: "INTEGER", nullable: true),
+                    Login = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
+                    Password = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
                     StudentType = table.Column<string>(type: "TEXT", maxLength: 8, nullable: false),
                     EgeScore = table.Column<int>(type: "INTEGER", nullable: true),
                     AverageScore = table.Column<double>(type: "REAL", nullable: true),

@@ -101,15 +101,26 @@ namespace repo.Models
         [StringLength(100)]
         public string? Email { get; set; }
         
+        // НОВЫЕ ПОЛЯ ДЛЯ АВТОРИЗАЦИИ
+        [Required]
+        [StringLength(50)]
+        public string Login { get; set; } = null!;
+        
+        [Required]
+        [StringLength(100)]
+        public string Password { get; set; } = null!;
+        
         public List<Discipline> Disciplines { get; set; } = new();
         
         public Teacher() { }
         
-        public Teacher(int id, string firstName, string lastName)
+        public Teacher(int id, string firstName, string lastName, string login, string password)
         {
             Id = id;
             FirstName = firstName;
             LastName = lastName;
+            Login = login;
+            Password = password;
         }
         
         public string FullName => $"{LastName} {FirstName} {Patronymic}".Trim();
@@ -181,7 +192,7 @@ namespace repo.Models
     public abstract class Student
     {
         [Key]
-        public int Id { get; set; }  // ← Теперь int PK
+        public int Id { get; set; }
         
         [Required]
         [StringLength(20)]
@@ -222,17 +233,28 @@ namespace repo.Models
         [ForeignKey("DepartmentId")]
         public Department? Department { get; set; }
         
+        // НОВЫЕ ПОЛЯ ДЛЯ АВТОРИЗАЦИИ
+        [Required]
+        [StringLength(50)]
+        public string Login { get; set; } = null!;
+        
+        [Required]
+        [StringLength(100)]
+        public string Password { get; set; } = null!;
+        
         // Many-to-Many через StudentDiscipline
         public List<StudentDiscipline> StudentDisciplines { get; set; } = new();
         
         protected Student() { }
         
-        protected Student(string recordBookNumber, string firstName, string lastName, DateTime dateOfBirth)
+        protected Student(string recordBookNumber, string firstName, string lastName, DateTime dateOfBirth, string login, string password)
         {
             RecordBookNumber = recordBookNumber;
             FirstName = firstName;
             LastName = lastName;
             DateOfBirth = dateOfBirth;
+            Login = login;
+            Password = password;
         }
         
         public abstract void PrintInfo();
@@ -247,6 +269,7 @@ namespace repo.Models
             Console.WriteLine($"Адрес: {Address ?? "Не указан"}");
             Console.WriteLine($"Группа: {Group?.Name ?? "Не указана"}");
             Console.WriteLine($"Кафедра: {Department?.Name ?? "Не указана"}");
+            Console.WriteLine($"Логин: {Login}");
             Console.WriteLine("Дисциплины и оценки:");
             foreach (var sd in StudentDisciplines)
             {
@@ -307,8 +330,8 @@ namespace repo.Models
         public FullTimeStudent() : base() { }
         
         public FullTimeStudent(string recordBookNumber, string firstName, string lastName, DateTime dateOfBirth,
-                              int egeScore, double averageScore)
-            : base(recordBookNumber, firstName, lastName, dateOfBirth)
+                              int egeScore, double averageScore, string login, string password)
+            : base(recordBookNumber, firstName, lastName, dateOfBirth, login, password)
         {
             EgeScore = egeScore;
             AverageScore = averageScore;
@@ -344,8 +367,9 @@ namespace repo.Models
         public PartTimeStudent() : base() { }
         
         public PartTimeStudent(string recordBookNumber, string firstName, string lastName, DateTime dateOfBirth,
-                              string? workPlace = null, string? position = null, decimal tuitionFee = 0)
-            : base(recordBookNumber, firstName, lastName, dateOfBirth)
+                              string? workPlace = null, string? position = null, decimal tuitionFee = 0, 
+                              string login = "", string password = "")
+            : base(recordBookNumber, firstName, lastName, dateOfBirth, login, password)
         {
             WorkPlace = workPlace;
             Position = position;
@@ -380,8 +404,9 @@ namespace repo.Models
         public TargetStudent() : base() { }
         
         public TargetStudent(string recordBookNumber, string firstName, string lastName, DateTime dateOfBirth,
-                            string? targetCompany = null, decimal tuitionFee = 0)
-            : base(recordBookNumber, firstName, lastName, dateOfBirth)
+                            string? targetCompany = null, decimal tuitionFee = 0,
+                            string login = "", string password = "")
+            : base(recordBookNumber, firstName, lastName, dateOfBirth, login, password)
         {
             TargetCompany = targetCompany;
             TuitionFee = tuitionFee;

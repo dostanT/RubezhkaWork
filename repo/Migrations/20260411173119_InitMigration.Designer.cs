@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace repo.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260411083848_InitMigration")]
+    [Migration("20260411173119_InitMigration")]
     partial class InitMigration
     {
         /// <inheritdoc />
@@ -160,6 +160,16 @@ namespace repo.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Login")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Patronymic")
                         .HasMaxLength(50)
                         .HasColumnType("TEXT");
@@ -243,6 +253,16 @@ namespace repo.Migrations
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Login")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Patronymic")

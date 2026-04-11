@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using repo.Models;
 using repo.Services;
@@ -6,81 +7,82 @@ namespace repo.Controllers
 {
     public class AuthController : Controller
     {
-        private readonly IAuthService _service;
-        private readonly ILogger<AuthController> _logger;
-
-        public AuthController(IAuthService service, ILogger<AuthController> logger)
+        private readonly IUniversityDbService _service;
+        
+        public AuthController(IUniversityDbService service)
         {
             _service = service;
-            _logger = logger;
         }
-
-        // --- ВХОД (SIGN IN) ---
-
+        
         [HttpGet]
-        public IActionResult SignIn()
+        public IActionResult Login()
         {
+            // Проверяем, есть ли пользователь в сессии
+            var userId = HttpContext.Session.GetString("UserId");
+            if (!string.IsNullOrEmpty(userId))
+            {
+                return RedirectToAction("Index", "Home");
+            }
             return View();
         }
-
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SignIn(Auth model)
+        public async Task<IActionResult> Login(LoginViewModel model)
         {
-            if (!ModelState.IsValid) return View(model);
-
-            var result = await _service.SignIn(model);
-
-            if (result)
+            if (!ModelState.IsValid) 
+                return View(model);
+            
+            var (success, role, user) = await _service.LoginAsync(model.Login, model.Password);
+            
+            if (!success)
             {
-                // Здесь обычно создаются Cookies или JWT токен
-                _logger.LogInformation("Пользователь {Login} авторизован", model.login);
-                return RedirectToAction("Index", "Home"); 
+                ModelState.AddModelError("", "Неверный логин или пароль");
+                return View(model);
             }
-
-            ModelState.AddModelError(string.Empty, "Неверный логин или пароль");
-            return View(model);
+            
+            // Сохраняем данные в сессию
+            if (user is Student s)
+            {
+                HttpContext.Session.SetString("UserId", s.Id.ToString());
+                HttpContext.Session.SetString("UserRole", role);
+                HttpContext.Session.SetString("UserName", $"{s.LastName} {s.FirstName}");
+            }
+            else if (user is Teacher t)
+            {
+                HttpContext.Session.SetString("UserId", t.Id.ToString());
+                HttpContext.Session.SetString("UserRole", role);
+                HttpContext.Session.SetString("UserName", $"{t.LastName} {t.FirstName}");
+            }
+                
+            return RedirectToAction("Index", "Home");
         }
-
-        // --- РЕГИСТРАЦИЯ (SIGN UP) ---
-
-        [HttpGet]
-        public IActionResult SignUp()
-        {
-            return View();
-        }
-
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SignUp(Auth model)
+        public async Task<IActionResult> Logout()
         {
-            if (!ModelState.IsValid) return View(model);
-
-            var result = await _service.SignUp(model);
-
-            if (result)
-            {
-                _logger.LogInformation("Новый пользователь {Login} зарегистрирован", model.login);
-                return RedirectToAction(nameof(SignIn));
-            }
-
-            ModelState.AddModelError("login", "Этот логин уже занят");
-            return View(model);
+            await _service.LogoutAsync();
+            HttpContext.Session.Clear(); // Очищаем сессию
+            return RedirectToAction("Login", "Auth");
         }
-
-        // --- ВЫХОД (LOG OUT) ---
-
-        [HttpPost] // Выход лучше делать POST-запросом для безопасности
-        public async Task<IActionResult> LogOut()
-        {
-            await _service.LogOut();
-            return RedirectToAction(nameof(SignIn));
-        }
-
-        // Страница по умолчанию (если нужна)
-        public IActionResult Index()
-        {
-            return View();
-        }
+        
+        [HttpGet]
+        public IActionResult AccessDenied() => View();
+    }
+    
+    public class LoginViewModel
+    {
+        [Required(ErrorMessage = "Введите логин")]
+        [Display(Name = "Логин")]
+        public string Login { get; set; } = null!;
+        
+        [Required(ErrorMessage = "Введите пароль")]
+        [DataType(DataType.Password)]
+        [Display(Name = "Пароль")]
+        public string Password { get; set; } = null!;
+        
+        [Display(Name = "Запомнить меня")]
+        public bool RememberMe { get; set; }
     }
 }

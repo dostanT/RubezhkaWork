@@ -48,13 +48,16 @@ namespace repo.Data
             context.Groups.AddRange(groups);
             context.SaveChanges();
             
-            // ========== 3. ПРЕПОДАВАТЕЛИ ==========
+            // ========== 3. ПРЕПОДАВАТЕЛИ (с логинами и паролями) ==========
             var firstNames = new[] { "Иван", "Мария", "Алексей", "Елена", "Дмитрий" };
             var lastNames = new[] { "Иванов", "Петрова", "Сидоров", "Смирнова", "Козлов" };
             var teachers = new List<Teacher>();
             
             for (int i = 1; i <= 50; i++)
             {
+                string login = $"teacher{i}";
+                string password = $"Teacher{i}123!"; // В реальном проекте нужно хешировать!
+                
                 teachers.Add(new Teacher 
                 { 
                     FirstName = firstNames[Random.Shared.Next(firstNames.Length)], 
@@ -63,7 +66,9 @@ namespace repo.Data
                     AcademicDegree = "Кандидат наук", 
                     Position = "Доцент", 
                     Phone = $"+7(701){i:000}-{Random.Shared.Next(10,99):D2}{Random.Shared.Next(10,99):D2}", 
-                    Email = $"teacher{i}@university.kz" 
+                    Email = $"teacher{i}@university.kz",
+                    Login = login,
+                    Password = password
                 });
             }
             context.Teachers.AddRange(teachers);
@@ -97,7 +102,7 @@ namespace repo.Data
             context.Disciplines.AddRange(disciplines);
             context.SaveChanges();
             
-            // ========== 5. СТУДЕНТЫ ==========
+            // ========== 5. СТУДЕНТЫ (с логинами и паролями) ==========
             var students = new List<Student>();
             var groupsList = context.Groups.ToList();
             
@@ -105,6 +110,9 @@ namespace repo.Data
             for (int i = 1; i <= 500; i++)
             {
                 var group = groupsList[Random.Shared.Next(groupsList.Count)];
+                string login = $"student{i}";
+                string password = $"Student{i}123!"; // В реальном проекте нужно хешировать!
+                
                 students.Add(new FullTimeStudent 
                 { 
                     RecordBookNumber = $"2024{i:0000}", 
@@ -118,7 +126,9 @@ namespace repo.Data
                     GroupId = group.Id, 
                     DepartmentId = group.DepartmentId,
                     EgeScore = Random.Shared.Next(60, 101), 
-                    AverageScore = Math.Round(Random.Shared.NextDouble() * 2.5 + 2.5, 2)
+                    AverageScore = Math.Round(Random.Shared.NextDouble() * 2.5 + 2.5, 2),
+                    Login = login,
+                    Password = password
                 });
             }
             
@@ -126,6 +136,9 @@ namespace repo.Data
             for (int i = 501; i <= 700; i++)
             {
                 var group = groupsList[Random.Shared.Next(groupsList.Count)];
+                string login = $"student{i}";
+                string password = $"Student{i}123!"; // В реальном проекте нужно хешировать!
+                
                 students.Add(new PartTimeStudent 
                 { 
                     RecordBookNumber = $"2024{i:0000}", 
@@ -140,7 +153,9 @@ namespace repo.Data
                     DepartmentId = group.DepartmentId,
                     WorkPlace = "Компания", 
                     Position = "Сотрудник", 
-                    TuitionFee = Random.Shared.Next(300000, 600001)
+                    TuitionFee = Random.Shared.Next(300000, 600001),
+                    Login = login,
+                    Password = password
                 });
             }
             
@@ -148,6 +163,9 @@ namespace repo.Data
             for (int i = 701; i <= 800; i++)
             {
                 var group = groupsList[Random.Shared.Next(groupsList.Count)];
+                string login = $"student{i}";
+                string password = $"Student{i}123!"; // В реальном проекте нужно хешировать!
+                
                 students.Add(new TargetStudent 
                 { 
                     RecordBookNumber = $"2024{i:0000}", 
@@ -161,7 +179,9 @@ namespace repo.Data
                     GroupId = group.Id, 
                     DepartmentId = group.DepartmentId,
                     TargetCompany = "Компания", 
-                    TuitionFee = 0
+                    TuitionFee = 0,
+                    Login = login,
+                    Password = password
                 });
             }
             
