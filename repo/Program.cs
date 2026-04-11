@@ -14,6 +14,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddScoped<IUniversityDbService, UniversityDbService>();
 
+builder.Services.AddScoped<IAuthService, AuthService>(); 
+
 var app = builder.Build();
 
 // Применяем миграции при старте приложения
@@ -39,7 +41,7 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Auth}/{action=SignIn}/{id?}");
 
 using (var scope = app.Services.CreateScope())
 {

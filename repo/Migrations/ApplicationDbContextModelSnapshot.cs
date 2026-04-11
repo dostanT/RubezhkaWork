@@ -16,6 +16,28 @@ namespace repo.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.5");
 
+            modelBuilder.Entity("repo.Models.Auth", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("isAdmin")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("login")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("password")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Auth");
+                });
+
             modelBuilder.Entity("repo.Models.Department", b =>
                 {
                     b.Property<int>("Id")

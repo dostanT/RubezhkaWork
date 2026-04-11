@@ -14,82 +14,83 @@ public class ApplicationDbContext : DbContext
     public DbSet<Teacher> Teachers { get; set; }
     public DbSet<Discipline> Disciplines { get; set; }
     public DbSet<StudentDiscipline> StudentDisciplines { get; set; }
+    public DbSet<Auth> Auth { get; set; }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        
+
         // ========== TPH НАСЛЕДОВАНИЕ ==========
         modelBuilder.Entity<Student>()
             .HasDiscriminator<string>("StudentType")
             .HasValue<FullTimeStudent>("FullTime")
             .HasValue<PartTimeStudent>("PartTime")
             .HasValue<TargetStudent>("Target");
-        
+
         // ========== MANY-TO-MANY ==========
         modelBuilder.Entity<StudentDiscipline>()
             .HasKey(sd => new { sd.StudentId, sd.DisciplineId });
-        
+
         modelBuilder.Entity<StudentDiscipline>()
             .HasOne(sd => sd.Student)
             .WithMany(s => s.StudentDisciplines)
             .HasForeignKey(sd => sd.StudentId)
             .OnDelete(DeleteBehavior.Cascade);
-        
+
         modelBuilder.Entity<StudentDiscipline>()
             .HasOne(sd => sd.Discipline)
             .WithMany(d => d.StudentDisciplines)
             .HasForeignKey(sd => sd.DisciplineId)
             .OnDelete(DeleteBehavior.Cascade);
-        
+
         // ========== СВЯЗИ ==========
         modelBuilder.Entity<Student>()
             .HasOne(s => s.Group)
             .WithMany(g => g.Students)
             .HasForeignKey(s => s.GroupId)
             .OnDelete(DeleteBehavior.SetNull);
-        
+
         modelBuilder.Entity<Student>()
             .HasOne(s => s.Department)
             .WithMany(d => d.Students)
             .HasForeignKey(s => s.DepartmentId)
             .OnDelete(DeleteBehavior.SetNull);
-        
+
         modelBuilder.Entity<Discipline>()
             .HasOne(d => d.Teacher)
             .WithMany(t => t.Disciplines)
             .HasForeignKey(d => d.TeacherId)
             .OnDelete(DeleteBehavior.SetNull);
-        
+
         modelBuilder.Entity<Group>()
             .HasOne(g => g.Department)
             .WithMany(d => d.Groups)
             .HasForeignKey(g => g.DepartmentId)
             .OnDelete(DeleteBehavior.SetNull);
-        
+
         // ========== ИНДЕКСЫ ==========
         modelBuilder.Entity<Student>()
             .HasIndex(s => s.RecordBookNumber)
             .IsUnique();
-        
+
         modelBuilder.Entity<Student>()
             .HasIndex(s => new { s.LastName, s.FirstName });
-        
+
         modelBuilder.Entity<Discipline>()
             .HasIndex(d => d.Name);
-        
+
         modelBuilder.Entity<Group>()
             .HasIndex(g => g.Name);
-        
+
         modelBuilder.Entity<Department>()
             .HasIndex(d => d.Name);
-        
+
         // ========== НАСТРОЙКА ТИПОВ ==========
         modelBuilder.Entity<StudentDiscipline>()
             .Property(sd => sd.Grade)
             .HasMaxLength(2)
             .IsRequired();
-        
+
         // ========== SEED DATA (расширенные данные) ==========
         // SeedData(modelBuilder);
     }

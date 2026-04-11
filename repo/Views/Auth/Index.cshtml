@@ -1,0 +1,16 @@
+@{
+    ViewData["Title"] = "Аккаунт";
+}
+
+<div class="container text-center py-5">
+    <h2>Добро пожаловать в систему управления университетом</h2>
+    <p class="lead">Вы успешно вошли в систему.</p>
+    <hr />
+    <div class="mt-4">
+        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-primary btn-lg">Перейти к панели управления</a>
+        
+        <form asp-action="LogOut" method="post" class="d-inline ms-2">
+            <button type="submit" class="btn btn-danger btn-lg">Выйти</button>
+        </form>
+    </div>
+</div>
